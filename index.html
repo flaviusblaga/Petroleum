@@ -144,6 +144,39 @@
   .sw{width:26px;height:12px;border-radius:3px;background:linear-gradient(90deg,var(--heat-0),var(--heat-3))}
   @media (max-width:560px){.bar-row{grid-template-columns:96px 1fr}.bar-name{font-size:12px}}
   input[type=file]{display:none}
+
+  @media print{
+    @page{size:A4 landscape;margin:11mm}
+    :root,:root[data-theme="light"],:root[data-theme="dark"]{
+      --bg:#fff;--surface:#fff;--surface-2:#f4f2ef;--ink:#111;--ink-2:#333;--ink-3:#666;--line:#ccc;--line-strong:#999;
+      --hell:#d81e2c;--hell-soft:#fbe9ea;--hell-ink:#a81421;
+      --heat-0:#f2f0ed;--heat-1:#dcd8d2;--heat-2:#c2bdb5;--heat-3:#a6a099;--heat-ink:#111;
+      --promo:#0a7a52;--promo-soft:#e2f2eb;--shadow:none;
+    }
+    html,body{background:#fff!important;color:#111!important}
+    body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .wrap{max-width:none!important;padding:0!important}
+    .controls,.zonebar,.toolbar,.legend,.photobar,.sub,.hint,#chartsec,input,select,button,.btn{display:none!important}
+    section{margin-top:14px!important}
+    .sec-h h2{font-size:15px}
+    .kpis{display:flex!important;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+    .kpi{flex:1 1 22%;padding:8px 10px;border:1px solid #ccc!important;break-inside:avoid}
+    .kpi .lab{min-height:auto}
+    .kpi .big{font-size:17px}
+    .tablewrap{overflow:visible!important;border:1px solid #ccc}
+    table{min-width:0!important;width:100%!important;font-size:9px}
+    table.cmp{font-size:7.5px}
+    thead th,tbody td{padding:4px 6px}
+    thead th{position:static}
+    tr,.kpi,.photocard,.notes{break-inside:avoid}
+    .heat{color:#111!important}
+    .notes{border:1px solid #ccc;margin-top:14px}
+    .photogrid{grid-template-columns:repeat(5,1fr);gap:8px}
+    .photocard{border:1px solid #ccc}
+    .photocard img{height:78px}
+    h1{font-size:20px}
+    .foot{font-size:9px}
+  }
   .btn.install{background:var(--hell);border-color:var(--hell);color:#fff;font-weight:600}
   .btn.install:hover{color:#fff;filter:brightness(1.05)}
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
@@ -197,7 +230,7 @@
     <div class="kpi"><p class="lab" id="kl4"></p><div class="big" id="kv4"></div><p class="note" id="kn4"></p></div>
   </div>
 
-  <section>
+  <section id="chartsec">
     <div class="sec-h"><h2 data-k="sec1h2"></h2></div>
     <p class="sec-sub" id="sec1sub"></p>
     <div class="chart">
@@ -219,6 +252,7 @@
         <button class="tab" role="tab" aria-selected="false" data-f="coffee" data-k="tabCoffee"></button>
       </div>
       <div class="spacer"></div>
+      <button class="btn" id="pdfbtn" type="button"></button>
       <button class="btn" id="csvbtn" type="button"></button>
       <button class="btn" id="jsonbtn" type="button"></button>
       <button class="btn" id="impbtn" type="button"></button>
@@ -307,7 +341,7 @@ const I = {
     sec2subCmp:'Oraș vs Autostradă per stație. Δ = Autostradă − Oraș (roșu = mai scump pe autostradă, verde = mai ieftin).',
     editBtnOff:'✎ Editează', editBtnOn:'✓ Gata',
     editHint:'Scrie prețul normal în celulă și, opțional, prețul promoțional dedesubt. Poți folosi virgulă (6,50) sau punct. Se salvează automat pe acest laptop. La final apasă „Gata".',
-    csvBtn:'⬇ Excel (CSV)', jsonBtn:'⬇ Backup', impBtn:'⬆ Încarcă backup', resetBtn:'↺ Reset',
+    csvBtn:'⬇ Excel (CSV)', jsonBtn:'⬇ Backup', impBtn:'⬆ Încarcă backup', resetBtn:'↺ Reset', pdfBtn:'🖨️ Export PDF',
     installBtn:'📲 Instalează pe telefon', installTitle:'Instalează pe telefon',
     installIos:'<b>Pe iPhone/iPad (Safari):</b> apasă butonul Partajare (□↑), apoi „Adaugă la ecranul principal".',
     installAndroid:'<b>Pe Android (Chrome):</b> meniul ⋮ → „Instalează aplicația" / „Adaugă la ecranul principal".',
@@ -355,7 +389,7 @@ const I = {
     sec2subCmp:'City vs Highway per station. Δ = Highway − City (red = dearer on highway, green = cheaper).',
     editBtnOff:'✎ Edit', editBtnOn:'✓ Done',
     editHint:'Type the regular price in the cell and, optionally, the promo price below it. Comma (6.50) or dot both work. Saved automatically on this laptop. Click "Done" when finished.',
-    csvBtn:'⬇ Excel (CSV)', jsonBtn:'⬇ Backup', impBtn:'⬆ Load backup', resetBtn:'↺ Reset',
+    csvBtn:'⬇ Excel (CSV)', jsonBtn:'⬇ Backup', impBtn:'⬆ Load backup', resetBtn:'↺ Reset', pdfBtn:'🖨️ Export PDF',
     installBtn:'📲 Install on phone', installTitle:'Install on phone',
     installIos:'<b>On iPhone/iPad (Safari):</b> tap the Share button (□↑), then "Add to Home Screen".',
     installAndroid:'<b>On Android (Chrome):</b> menu ⋮ → "Install app" / "Add to Home screen".',
@@ -403,7 +437,7 @@ const I = {
     sec2subCmp:'Város vs. autópálya állomásonként. Δ = autópálya − város (piros = drágább az autópályán, szürke = olcsóbb).',
     editBtnOff:'✎ Szerkesztés', editBtnOn:'✓ Kész',
     editHint:'Írd be a normál árat a cellába, opcionálisan az akciós árat alá. Használhatsz vesszőt (6,50) vagy pontot. Automatikusan mentődik ezen a laptopon. Végül kattints a „Kész" gombra.',
-    csvBtn:'⬇ Excel (CSV)', jsonBtn:'⬇ Mentés', impBtn:'⬆ Mentés betöltése', resetBtn:'↺ Visszaállítás',
+    csvBtn:'⬇ Excel (CSV)', jsonBtn:'⬇ Mentés', impBtn:'⬆ Mentés betöltése', resetBtn:'↺ Visszaállítás', pdfBtn:'🖨️ PDF export',
     installBtn:'📲 Telepítés telefonra', installTitle:'Telepítés telefonra',
     installIos:'<b>iPhone/iPad-en (Safari):</b> koppints a Megosztás gombra (□↑), majd „Hozzáadás a kezdőképernyőhöz".',
     installAndroid:'<b>Androidon (Chrome):</b> ⋮ menü → „Alkalmazás telepítése" / „Hozzáadás a kezdőképernyőhöz".',
@@ -641,7 +675,7 @@ function applyStatic(){
   langbtn.innerHTML=LANGS.map(l=>l===LANG?`<b>${l.toUpperCase()}</b>`:l.toUpperCase()).join(' · ');
   editbtn.textContent=editMode?L.editBtnOn:L.editBtnOff; editbtn.classList.toggle('on',editMode); editbtn.hidden=(viewMode==='compare');
   installbtn.textContent=L.installBtn;
-  csvbtn.textContent=L.csvBtn; jsonbtn.textContent=L.jsonBtn; impbtn.textContent=L.impBtn; resetbtn.textContent=L.resetBtn;
+  csvbtn.textContent=L.csvBtn; jsonbtn.textContent=L.jsonBtn; impbtn.textContent=L.impBtn; resetbtn.textContent=L.resetBtn; pdfbtn.textContent=L.pdfBtn;
   document.getElementById('edithint').hidden=!editMode;
   document.getElementById('legend').style.display = viewMode==='compare'?'none':'flex';
   document.getElementById('sec1sub').textContent = chartZone()==='hw'?L.sec1subHw:L.sec1subCity;
@@ -652,7 +686,7 @@ function renderAll(anim){ applyStatic(); renderStations(); renderKPIs(); renderC
 
 // ---------- interactions ----------
 const langbtn=document.getElementById('langbtn'), themebtn=document.getElementById('themebtn'), editbtn=document.getElementById('editbtn'), installbtn=document.getElementById('installbtn');
-const csvbtn=document.getElementById('csvbtn'), jsonbtn=document.getElementById('jsonbtn'), impbtn=document.getElementById('impbtn'), resetbtn=document.getElementById('resetbtn'), fileinput=document.getElementById('fileinput');
+const csvbtn=document.getElementById('csvbtn'), jsonbtn=document.getElementById('jsonbtn'), impbtn=document.getElementById('impbtn'), resetbtn=document.getElementById('resetbtn'), fileinput=document.getElementById('fileinput'), pdfbtn=document.getElementById('pdfbtn');
 
 document.getElementById('zones').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return; [...document.querySelectorAll('#zones .tab')].forEach(t=>t.setAttribute('aria-selected',t===b)); viewMode=b.dataset.z; if(viewMode==='compare')editMode=false; renderAll(true);});
 document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return; [...document.querySelectorAll('#tabs .tab')].forEach(t=>t.setAttribute('aria-selected',t===b)); currentFilter=b.dataset.f; renderTable();});
@@ -692,6 +726,13 @@ jsonbtn.addEventListener('click',()=>download(`${T().csvName}-backup-${today()}.
 impbtn.addEventListener('click',()=>fileinput.click());
 fileinput.addEventListener('change',e=>{const f=e.target.files&&e.target.files[0]; if(!f)return; const rd=new FileReader(); rd.onload=()=>{try{const o=JSON.parse(rd.result); if(!o||!Array.isArray(o.prices)||o.prices.length!==SEED.length)throw 0; if(o.v===4){data.forEach((p,i)=>p.prices=o.prices[i]||{});} else {data.forEach((p,i)=>{const flat=o.prices[i]||{}; const np={}; for(const sk in flat){np[sk]={city:flat[sk]};} p.prices=np;});} saveData(); renderAll(true);}catch(err){alert(T().importErr);} fileinput.value='';}; rd.readAsText(f);});
 resetbtn.addEventListener('click',()=>{if(!confirm(T().resetConfirm))return; try{localStorage.removeItem(STORE);localStorage.removeItem(OLD);}catch(e){} data=buildData(); saveData(); renderAll(true);});
+pdfbtn.addEventListener('click',()=>{
+  const pf=currentFilter, pe=editMode;
+  editMode=false; currentFilter='all'; applyStatic(); renderTable();
+  const restore=()=>{currentFilter=pf; editMode=pe; applyStatic(); renderTable(); window.removeEventListener('afterprint',restore);};
+  window.addEventListener('afterprint',restore);
+  setTimeout(()=>{try{window.print();}catch(e){}},150);
+});
 
 const modes=['auto','light','dark']; let mi=0;
 try{const tm=localStorage.getItem('pr_theme'); if(tm)mi=Math.max(0,modes.indexOf(tm));}catch(e){}
