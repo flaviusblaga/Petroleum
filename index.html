@@ -300,6 +300,8 @@
   </p>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
 const STATIONS = [
   {k:'omv', name:'OMV',       v:'--st-omv'},
@@ -729,13 +731,73 @@ jsonbtn.addEventListener('click',()=>download(`${T().csvName}-backup-${today()}.
 impbtn.addEventListener('click',()=>fileinput.click());
 fileinput.addEventListener('change',e=>{const f=e.target.files&&e.target.files[0]; if(!f)return; const rd=new FileReader(); rd.onload=()=>{try{const o=JSON.parse(rd.result); if(!o||!Array.isArray(o.prices)||o.prices.length!==SEED.length)throw 0; if(o.v===4){data.forEach((p,i)=>p.prices=o.prices[i]||{});} else {data.forEach((p,i)=>{const flat=o.prices[i]||{}; const np={}; for(const sk in flat){np[sk]={city:flat[sk]};} p.prices=np;});} saveData(); renderAll(true);}catch(err){alert(T().importErr);} fileinput.value='';}; rd.readAsText(f);});
 resetbtn.addEventListener('click',()=>{if(!confirm(T().resetConfirm))return; try{localStorage.removeItem(STORE);localStorage.removeItem(OLD);}catch(e){} data=buildData(); saveData(); renderAll(true);});
-pdfbtn.addEventListener('click',()=>{
+function printFallback(){
   const pf=currentFilter, pe=editMode;
   editMode=false; currentFilter='all'; applyStatic(); renderTable();
   const restore=()=>{currentFilter=pf; editMode=pe; applyStatic(); renderTable(); window.removeEventListener('afterprint',restore);};
   window.addEventListener('afterprint',restore);
   setTimeout(()=>{try{window.print();}catch(e){}},150);
-});
+}
+function loadImg(src){return new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;});}
+async function generatePDF(){
+  const NS=window.jspdf; if(!NS||!NS.jsPDF){ printFallback(); return; }
+  const L=T(); const doc=new NS.jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
+  const PW=doc.internal.pageSize.getWidth(), PH=doc.internal.pageSize.getHeight(), M=32;
+  const gray=[130,120,110], red=[168,20,33], pinkFill=[251,233,234], catFill=[240,238,233];
+  let y=36;
+  doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(20,20,20); doc.text(L.h1,M,y); y+=16;
+  const zl=viewMode==='compare'?L.zoneCompare:(viewMode==='hw'?L.zoneHw:L.zoneCity);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(120,120,120); doc.text(zl+' · '+new Date().toLocaleDateString(L.locale),M,y); y+=16;
+  const kpis=[1,2,3,4].map(i=>({l:document.getElementById('kl'+i).textContent,v:document.getElementById('kv'+i).textContent}));
+  const kw=(PW-2*M)/4;
+  kpis.forEach((k,i)=>{const x=M+i*kw; doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,140,140); doc.text(doc.splitTextToSize(k.l,kw-8),x,y); doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(30,30,30); doc.text(k.v,x,y+20);});
+  y+=40;
+  if(viewMode==='compare'){
+    const head=[[{content:L.thProduct,rowSpan:2}].concat(STATIONS.map(s=>({content:s.name,colSpan:3,styles:{halign:'center'}}))),
+      [].concat.apply([],STATIONS.map(()=>[{content:L.cmpCity},{content:L.cmpHw},{content:'Δ%'}]))];
+    const body=[]; let cc=null;
+    data.forEach(p=>{ if(p.cat!==cc){cc=p.cat; body.push([{content:L.cat[p.cat],colSpan:1+STATIONS.length*3,styles:{fillColor:catFill,fontStyle:'bold',textColor:[90,80,70]}}]);}
+      const row=[{content:p.name+(p.short?' '+p.short:''),styles:{halign:'left',fontStyle:'bold'}}];
+      STATIONS.forEach(s=>{const c=getD(p,s.k,'city'),h=getD(p,s.k,'hw');
+        row.push({content:c&&typeof c.p==='number'?fmtNum(c.p):'—'});
+        row.push({content:h&&typeof h.p==='number'?fmtNum(h.p):'—'});
+        let dv='—',col=gray; if(c&&h&&typeof c.p==='number'&&typeof h.p==='number'&&c.p>0){const pct=(h.p-c.p)/c.p*100; if(Math.abs(pct)<0.5)dv='0%'; else {dv=(pct>0?'+':'−')+Math.round(Math.abs(pct))+'%'; col=pct>0?red:[80,80,80];}}
+        row.push({content:dv,styles:{textColor:col,fontStyle:'bold'}});});
+      if(p.hell) row.forEach(c=>{c.styles=Object.assign({fillColor:pinkFill},c.styles||{});});
+      body.push(row);});
+    doc.autoTable({head,body,startY:y,margin:{left:M,right:M},theme:'grid',styles:{fontSize:7,cellPadding:2,lineColor:[220,220,220],lineWidth:0.5},headStyles:{fillColor:[244,242,239],textColor:[60,60,60]}});
+  } else {
+    const zone=viewMode;
+    const head=[[L.thProduct,'Format'].concat(STATIONS.map(s=>s.name))];
+    const body=[]; let cc=null;
+    data.forEach(p=>{ if(p.cat!==cc){cc=p.cat; body.push([{content:L.cat[p.cat],colSpan:2+STATIONS.length,styles:{fillColor:catFill,fontStyle:'bold',textColor:[90,80,70]}}]);}
+      const row=[{content:p.name+(p.short?' '+p.short:''),styles:{halign:'left',fontStyle:'bold'}},{content:p.fmt[LANG]||'',styles:{textColor:gray,fontSize:7,halign:'left'}}];
+      STATIONS.forEach(s=>{const d=getD(p,s.k,zone); let t='—'; if(d&&typeof d.p==='number'){t=(typeof d.alt==='number')?fmtNum(d.p)+' / '+fmtNum(d.alt):fmtNum(d.p); if(typeof d.promo==='number')t+='\npromo '+fmtNum(d.promo);} row.push({content:t,styles:{halign:'right'}});});
+      if(p.hell) row.forEach(c=>{c.styles=Object.assign({fillColor:pinkFill},c.styles||{});});
+      body.push(row);});
+    doc.autoTable({head,body,startY:y,margin:{left:M,right:M},theme:'grid',styles:{fontSize:8,cellPadding:3,lineColor:[220,220,220],lineWidth:0.5,valign:'middle'},headStyles:{fillColor:[244,242,239],textColor:[60,60,60]},columnStyles:{0:{halign:'left'},1:{halign:'left'}}});
+  }
+  y=doc.lastAutoTable.finalY+18;
+  const noteItems=[...document.querySelectorAll('#noteslist li')].map(li=>li.textContent);
+  if(noteItems.length){
+    if(y>PH-60){doc.addPage();y=36;}
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(30,30,30);doc.text(document.getElementById('notesH3').textContent,M,y);y+=14;
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(60,60,60);
+    noteItems.forEach(n=>{const lines=doc.splitTextToSize('• '+n,PW-2*M); if(y+lines.length*11>PH-30){doc.addPage();y=36;} doc.text(lines,M,y); y+=lines.length*11+3;});
+  }
+  const photos=(await photoAllRecs()).sort((a,b)=>b.id-a.id);
+  if(photos.length){
+    doc.addPage();y=36; doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(30,30,30);doc.text(L.photosH2,M,y);y+=16;
+    const cols=4,gap=10,cw=(PW-2*M-(cols-1)*gap)/cols; let x=M,rowH=0;
+    for(const p of photos){ const img=await loadImg(p.src); if(!img)continue; const ratio=(img.naturalHeight/img.naturalWidth)||0.66; const ih=cw*ratio;
+      if(y+ih+16>PH-M){doc.addPage();y=36;x=M;rowH=0;}
+      try{doc.addImage(p.src,'JPEG',x,y,cw,ih);}catch(e){}
+      const st=STATIONS.find(s=>s.k===p.station); doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(80,80,80); doc.text((st?st.name:L.photoGeneral)+' · '+(p.date||''),x,y+ih+9);
+      rowH=Math.max(rowH,ih+16); x+=cw+gap; if(x+cw>PW-M+1){x=M;y+=rowH+4;rowH=0;} }
+  }
+  doc.save(L.csvName+'-'+today()+'.pdf');
+}
+pdfbtn.addEventListener('click',()=>{ generatePDF().catch(()=>printFallback()); });
 
 const modes=['auto','light','dark']; let mi=0;
 try{const tm=localStorage.getItem('pr_theme'); if(tm)mi=Math.max(0,modes.indexOf(tm));}catch(e){}
