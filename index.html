@@ -122,7 +122,7 @@
   .cell{display:inline-flex;flex-direction:column;align-items:flex-end;gap:3px}
   .price{font-weight:600}
   .heat{display:inline-block;padding:2px 8px;border-radius:6px;color:var(--heat-ink)}
-  .promo{font-size:11px;font-weight:600;color:var(--hell-ink);background:transparent;border:1px solid var(--hell);border-radius:5px;padding:1px 6px;white-space:nowrap}
+  .promo{font-size:11px;font-weight:600;color:var(--promo);background:var(--promo-soft);border-radius:5px;padding:1px 6px;white-space:nowrap}
   .na{color:var(--ink-3)}
   .dpos{color:var(--hell-ink);font-weight:700}
   .dneg{color:var(--ink-2);font-weight:600}
@@ -274,20 +274,20 @@ const STATIONS = [
 const ZONES=['city','hw'];
 
 const SEED = [
-  {name:'Red Bull', short:'RB', fmt:{ro:'250 ml',en:'250 ml'}, cat:'energy', prices:{omv:{p:11.30}, rom:{p:10.50}, luk:{p:12.49}}},
-  {name:'Red Bull', short:'RB 355', fmt:{ro:'355 ml',en:'355 ml'}, cat:'energy', prices:{omv:{p:15.60}, rom:{p:14.60}, luk:{p:16.99}}},
-  {name:'Monster', fmt:{ro:'',en:''}, cat:'energy', prices:{omv:{p:11.00}, rom:{p:10.70,promo:8.00}, luk:{p:11.49,promo:7.49}}},
-  {name:'Burn', fmt:{ro:'',en:''}, cat:'energy', prices:{omv:{p:10.30}, rom:{p:5.60}, luk:{p:8.99}}},
-  {name:'Burn 500', fmt:{ro:'500 ml',en:'500 ml'}, cat:'energy', prices:{omv:{p:13.10}, rom:{p:8.10}, luk:{p:11.49}}},
-  {name:'Figa', fmt:{ro:'',en:''}, cat:'energy', unsure:true, prices:{omv:{p:13.00}, rom:{p:11.40}}},
-  {name:'Viva', fmt:{ro:'marcă proprie OMV',en:'OMV private label'}, cat:'energy', prices:{omv:{p:6.50}}},
-  {name:'Hell', fmt:{ro:'',en:''}, cat:'energy', hell:true, prices:{omv:{p:7.20,promo:5.60}, rom:{p:7.20,promo:5.60}, luk:{p:6.50,promo:5.99}}},
-  {name:'Nescafé', fmt:{ro:'',en:''}, cat:'coffee', prices:{omv:{p:11.40}, rom:{p:11.80}}},
-  {name:'Cafea Mio', fmt:{ro:'',en:''}, cat:'coffee', prices:{omv:{p:16.80}, rom:{p:16.10}, luk:{p:16.99}}},
-  {name:'Viva', fmt:{ro:'cafea OMV',en:'OMV coffee'}, cat:'coffee', prices:{omv:{p:14.00}}},
-  {name:'Starbucks', short:'Stb', fmt:{ro:'',en:''}, cat:'coffee', prices:{omv:{p:20.40}}},
-  {name:'HIC — Hell Ice Coffee', short:'HIC', fmt:{ro:'',en:''}, cat:'coffee', hell:true, prices:{omv:{p:14.70,alt:12.80}, rom:{p:11.00}, luk:{p:11.99}}},
-  {name:'Xixo', fmt:{ro:'CSD Hell',en:'Hell CSD'}, cat:'csd', hell:true, prices:{omv:{p:5.10}}},
+  {name:'Red Bull', short:'RB', fmt:{ro:'250 ml',en:'250 ml',hu:'250 ml'}, cat:'energy', prices:{omv:{p:11.30}, rom:{p:10.50}, luk:{p:12.49}}},
+  {name:'Red Bull', short:'RB 355', fmt:{ro:'355 ml',en:'355 ml',hu:'355 ml'}, cat:'energy', prices:{omv:{p:15.60}, rom:{p:14.60}, luk:{p:16.99}}},
+  {name:'Monster', fmt:{ro:'500 ml',en:'500 ml',hu:'500 ml'}, cat:'energy', prices:{omv:{p:11.00}, rom:{p:10.70,promo:8.00}, luk:{p:11.49,promo:7.49}}},
+  {name:'Burn', fmt:{ro:'250 ml',en:'250 ml',hu:'250 ml'}, cat:'energy', prices:{omv:{p:10.30}, rom:{p:5.60}, luk:{p:8.99}}},
+  {name:'Burn 500', fmt:{ro:'500 ml',en:'500 ml',hu:'500 ml'}, cat:'energy', prices:{omv:{p:13.10}, rom:{p:8.10}, luk:{p:11.49}}},
+  {name:'Figa', fmt:{ro:'250 ml',en:'250 ml',hu:'250 ml'}, cat:'energy', unsure:true, prices:{omv:{p:13.00}, rom:{p:11.40}}},
+  {name:'Viva', fmt:{ro:'250 ml · marcă proprie OMV',en:'250 ml · OMV private label',hu:'250 ml · OMV saját márka'}, cat:'energy', prices:{omv:{p:6.50}}},
+  {name:'Hell', fmt:{ro:'250 ml',en:'250 ml',hu:'250 ml'}, cat:'energy', hell:true, prices:{omv:{p:7.20,promo:5.60}, rom:{p:7.20,promo:5.60}, luk:{p:6.50,promo:5.99}}},
+  {name:'Nescafé', fmt:{ro:'',en:'',hu:''}, cat:'coffee', prices:{omv:{p:11.40}, rom:{p:11.80}}},
+  {name:'Cafea Mio', fmt:{ro:'',en:'',hu:''}, cat:'coffee', prices:{omv:{p:16.80}, rom:{p:16.10}, luk:{p:16.99}}},
+  {name:'Viva', fmt:{ro:'cafea OMV',en:'OMV coffee',hu:'OMV kávé'}, cat:'coffee', prices:{omv:{p:14.00}}},
+  {name:'Starbucks', short:'Stb', fmt:{ro:'',en:'',hu:''}, cat:'coffee', prices:{omv:{p:20.40}}},
+  {name:'HIC — Hell Ice Coffee', short:'HIC', fmt:{ro:'',en:'',hu:''}, cat:'coffee', hell:true, prices:{omv:{p:14.70,alt:12.80}, rom:{p:11.00}, luk:{p:11.99}}},
+  {name:'Xixo', fmt:{ro:'CSD Hell',en:'Hell CSD',hu:'Hell CSD'}, cat:'csd', hell:true, prices:{omv:{p:5.10}}},
 ];
 
 const I = {
