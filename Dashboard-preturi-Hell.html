@@ -1,0 +1,702 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prețuri raft — vizită petroliere</title>
+<meta name="description" content="Dashboard editabil: prețuri Hell vs concurență la raft, oraș vs autostradă, stații OMV, Rompetrol, Lukoil, MOL, Petrom.">
+<meta name="theme-color" content="#d81e2c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Prețuri Hell">
+<style>
+  :root{
+    --bg:#f5f3f0;--surface:#ffffff;--surface-2:#faf8f5;
+    --ink:#1c1815;--ink-2:#5a524a;--ink-3:#8b8177;
+    --line:#e7e1da;--line-strong:#d8d0c6;
+    --hell:#d81e2c;--hell-soft:#fbe9ea;--hell-ink:#a81421;--coffee:#a9682e;
+    --heat-0:#f2f0ed;--heat-1:#dcd8d2;--heat-2:#c2bdb5;--heat-3:#a6a099;--heat-ink:#1c1815;
+    --promo:#0f7a5a;--promo-soft:#e2f2eb;--warn:#c2521f;
+    --shadow:0 1px 2px rgba(28,24,21,.05),0 6px 20px rgba(28,24,21,.06);
+    --st-omv:#2f5bc4;--st-rom:#7a4fb5;--st-luk:#c77a16;--st-mol:#0f8b7e;--st-pet:#c9772a;
+    --f-disp:'Segoe UI Variable Display','Segoe UI Semibold',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    --f-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#141210;--surface:#1e1b18;--surface-2:#242019;
+      --ink:#f4efe8;--ink-2:#b6ada2;--ink-3:#877e73;
+      --line:#332e28;--line-strong:#413a32;
+      --hell:#ff4a56;--hell-soft:#3a1e20;--hell-ink:#ff8b93;--coffee:#d69a5f;
+      --heat-0:#242019;--heat-1:#332e27;--heat-2:#443e35;--heat-3:#565046;--heat-ink:#f4efe8;
+      --promo:#43c79a;--promo-soft:#17332a;--warn:#f0925a;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+      --st-omv:#6f97ee;--st-rom:#b18ce0;--st-luk:#e2a54e;--st-mol:#3fbfb0;--st-pet:#e59a4e;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141210;--surface:#1e1b18;--surface-2:#242019;
+    --ink:#f4efe8;--ink-2:#b6ada2;--ink-3:#877e73;
+    --line:#332e28;--line-strong:#413a32;
+    --hell:#ff4a56;--hell-soft:#3a1e20;--hell-ink:#ff8b93;--coffee:#d69a5f;
+    --heat-0:#242019;--heat-1:#332e27;--heat-2:#443e35;--heat-3:#565046;--heat-ink:#f4efe8;
+    --promo:#43c79a;--promo-soft:#17332a;--warn:#f0925a;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+    --st-omv:#6f97ee;--st-rom:#b18ce0;--st-luk:#e2a54e;--st-mol:#3fbfb0;--st-pet:#e59a4e;
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto;padding:28px 22px 72px}
+
+  .head{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between;margin-bottom:8px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--hell);font-weight:600;margin:0 0 6px}
+  h1{font-family:var(--f-disp);font-weight:800;font-size:clamp(28px,4.4vw,44px);line-height:1.02;letter-spacing:-.02em;margin:0;text-wrap:balance}
+  .sub{color:var(--ink-2);margin:10px 0 0;max-width:60ch;font-size:15px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+  .btn:hover{border-color:var(--ink-3);color:var(--ink)}
+  .btn.lang{font-weight:600;color:var(--ink)}
+  .btn.lang b{color:var(--hell)}
+  .btn.on{background:var(--hell);border-color:var(--hell);color:#fff}
+  .btn.on:hover{color:#fff}
+
+  .stations{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 18px}
+  .st{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 14px;font-size:13px;box-shadow:var(--shadow)}
+  .dot{width:10px;height:10px;border-radius:3px;flex:none}
+  .st b{font-weight:600}
+
+  .zonebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 26px}
+  .zonelab{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600}
+  .tabs{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px}
+  .tab{border:0;background:transparent;color:var(--ink-2);font:inherit;font-size:13.5px;font-weight:500;padding:7px 16px;border-radius:999px;cursor:pointer}
+  .tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-weight:600}
+  .tabs.zones .tab[aria-selected="true"]{background:var(--hell);color:#fff}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:30px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+  .kpi.hero{border-color:var(--hell);background:linear-gradient(180deg,var(--hell-soft),var(--surface))}
+  .kpi .lab{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin:0 0 8px;min-height:2.2em}
+  .kpi .big{font-family:var(--f-disp);font-weight:800;font-size:26px;letter-spacing:-.02em;line-height:1.08;font-variant-numeric:tabular-nums}
+  .kpi.hero .big{color:var(--hell-ink)}
+  .kpi .note{font-size:12.5px;color:var(--ink-2);margin:8px 0 0}
+
+  section{margin-top:40px}
+  .sec-h{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+  h2{font-family:var(--f-disp);font-weight:700;font-size:21px;letter-spacing:-.01em;margin:0}
+  .sec-sub{color:var(--ink-3);font-size:13px;margin:2px 0 18px}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+  .toolbar .spacer{flex:1 1 auto}
+  .hint{font-size:12.5px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--hell);border-radius:8px;padding:9px 13px;margin:0 0 14px}
+
+  .chart{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 22px 18px;box-shadow:var(--shadow)}
+  .chart h3{font-family:var(--f-disp);font-size:15px;font-weight:700;margin:0 0 2px}
+  .chart .cap{font-size:12.5px;color:var(--ink-3);margin:0 0 20px}
+  .bars{display:flex;flex-direction:column;gap:11px}
+  .bar-row{display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:center}
+  .bar-name{font-size:13.5px;font-weight:500;text-align:right;color:var(--ink-2)}
+  .bar-row.is-hell .bar-name{color:var(--hell-ink);font-weight:700}
+  .bar-track{position:relative;height:26px;display:flex;align-items:center}
+  .bar-fill{height:26px;border-radius:0 5px 5px 0;background:var(--line-strong);min-width:2px;transition:width .7s cubic-bezier(.2,.7,.2,1)}
+  .bar-row.is-hell .bar-fill{background:var(--hell)}
+  .bar-val{margin-left:9px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
+  .bar-row.is-hell .bar-val{color:var(--hell-ink)}
+  .chart-empty{color:var(--ink-3);font-size:13px;padding:6px 0}
+
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);background:var(--surface)}
+  table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+  table.zone{min-width:860px}
+  table.cmp{min-width:1120px}
+  thead th{background:var(--surface-2);text-align:right;font-size:12px;font-weight:600;color:var(--ink-2);padding:11px 14px;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+  thead th:first-child{text-align:left}
+  thead th .dot{display:inline-block;margin-right:6px;vertical-align:middle}
+  table.cmp thead th.grp{text-align:center;border-left:1px solid var(--line)}
+  table.cmp thead th.sub{font-weight:500;color:var(--ink-3);font-size:11px}
+  tbody td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:right;font-size:14px;vertical-align:middle}
+  tbody tr:last-child td{border-bottom:0}
+  table.cmp td.grpsep{border-left:1px solid var(--line)}
+  .pname{text-align:left;font-weight:500}
+  .pname .fmt{display:block;font-size:11.5px;color:var(--ink-3);font-weight:400;margin-top:1px}
+  .cat-row td{background:var(--surface-2);text-transform:uppercase;letter-spacing:.08em;font-size:11px;font-weight:700;color:var(--ink-3);text-align:left;padding:9px 14px}
+  tr.hell{background:var(--hell-soft)}
+  tr.hell .pname{color:var(--hell-ink);font-weight:700}
+  .cell{display:inline-flex;flex-direction:column;align-items:flex-end;gap:3px}
+  .price{font-weight:600}
+  .heat{display:inline-block;padding:2px 8px;border-radius:6px;color:var(--heat-ink)}
+  .promo{font-size:11px;font-weight:600;color:var(--hell-ink);background:transparent;border:1px solid var(--hell);border-radius:5px;padding:1px 6px;white-space:nowrap}
+  .na{color:var(--ink-3)}
+  .dpos{color:var(--hell-ink);font-weight:700}
+  .dneg{color:var(--ink-2);font-weight:600}
+  .dzero{color:var(--ink-3)}
+  .u{color:var(--ink-3);cursor:help;border-bottom:1px dotted var(--ink-3)}
+  .pin{width:72px;padding:5px 7px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+  .pin::placeholder{color:var(--ink-3)}
+  .pin.promo-in{width:66px;margin-top:4px;color:var(--promo)}
+  .pin:focus{outline:2px solid var(--hell);outline-offset:1px;border-color:var(--hell)}
+
+  .notes{margin-top:26px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--hell);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)}
+  .notes h3{font-family:var(--f-disp);font-size:14px;margin:0 0 10px}
+  .notes ul{margin:0;padding-left:18px;color:var(--ink-2);font-size:13.5px}
+  .notes li{margin:6px 0}
+  .notes b{color:var(--ink)}
+  .foot{margin-top:30px;color:var(--ink-3);font-size:12px;line-height:1.7}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin:14px 0 0}
+  .legend span.item{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:26px;height:12px;border-radius:3px;background:linear-gradient(90deg,var(--heat-0),var(--heat-3))}
+  @media (max-width:560px){.bar-row{grid-template-columns:96px 1fr}.bar-name{font-size:12px}}
+  input[type=file]{display:none}
+  .btn.install{background:var(--hell);border-color:var(--hell);color:#fff;font-weight:600}
+  .btn.install:hover{color:#fff;filter:brightness(1.05)}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .modal-card{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;max-width:430px;width:100%;padding:22px 24px;box-shadow:var(--shadow)}
+  .modal-card h3{font-family:var(--f-disp);margin:0 0 14px;font-size:18px}
+  .modal-card p{margin:0 0 12px;font-size:14px;color:var(--ink-2);line-height:1.55}
+  .modal-card p b{color:var(--ink)}
+  .modal-card .mnote{font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div>
+      <p class="eyebrow" data-k="eyebrow"></p>
+      <h1 data-k="h1"></h1>
+      <p class="sub" data-k="sub"></p>
+    </div>
+    <div class="controls">
+      <button class="btn install" id="installbtn" type="button" hidden></button>
+      <button class="btn lang" id="langbtn" type="button"></button>
+      <button class="btn" id="themebtn" type="button"></button>
+    </div>
+  </header>
+
+  <div class="stations" id="stations"></div>
+
+  <div class="zonebar">
+    <span class="zonelab" data-k="zoneLabel"></span>
+    <div class="tabs zones" role="tablist" id="zones">
+      <button class="tab" role="tab" aria-selected="true" data-z="city" data-k="zoneCity"></button>
+      <button class="tab" role="tab" aria-selected="false" data-z="hw" data-k="zoneHw"></button>
+      <button class="tab" role="tab" aria-selected="false" data-z="compare" data-k="zoneCompare"></button>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis">
+    <div class="kpi hero"><p class="lab" id="kl1"></p><div class="big" id="kv1"></div><p class="note" id="kn1"></p></div>
+    <div class="kpi"><p class="lab" id="kl2"></p><div class="big" id="kv2"></div><p class="note" id="kn2"></p></div>
+    <div class="kpi"><p class="lab" id="kl3"></p><div class="big" id="kv3"></div><p class="note" id="kn3"></p></div>
+    <div class="kpi"><p class="lab" id="kl4"></p><div class="big" id="kv4"></div><p class="note" id="kn4"></p></div>
+  </div>
+
+  <section>
+    <div class="sec-h"><h2 data-k="sec1h2"></h2></div>
+    <p class="sec-sub" id="sec1sub"></p>
+    <div class="chart">
+      <h3 data-k="charth3"></h3>
+      <p class="cap" data-k="chartcap"></p>
+      <div class="bars" id="bars"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2 data-k="sec2h2"></h2></div>
+    <p class="sec-sub" id="sec2sub"></p>
+
+    <div class="toolbar">
+      <button class="btn" id="editbtn" type="button"></button>
+      <div class="tabs" role="tablist" id="tabs">
+        <button class="tab" role="tab" aria-selected="true" data-f="all" data-k="tabAll"></button>
+        <button class="tab" role="tab" aria-selected="false" data-f="energy" data-k="tabEnergy"></button>
+        <button class="tab" role="tab" aria-selected="false" data-f="coffee" data-k="tabCoffee"></button>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" id="csvbtn" type="button"></button>
+      <button class="btn" id="jsonbtn" type="button"></button>
+      <button class="btn" id="impbtn" type="button"></button>
+      <button class="btn" id="resetbtn" type="button"></button>
+      <input type="file" id="fileinput" accept=".json,application/json">
+    </div>
+    <p class="hint" id="edithint" hidden data-k="editHint"></p>
+
+    <div class="tablewrap">
+      <table id="ptable" class="zone">
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="legend" id="legend">
+      <span class="item"><span class="sw"></span> <span data-k="legendHeat"></span></span>
+      <span class="item"><span class="promo">promo</span> <span data-k="legendPromo"></span></span>
+      <span class="item"><span style="color:var(--hell-ink);font-weight:700">▌Hell</span> <span data-k="legendHell"></span></span>
+    </div>
+  </section>
+
+  <div class="notes">
+    <h3 id="notesH3"></h3>
+    <ul id="noteslist"></ul>
+  </div>
+
+  <p class="foot">
+    <span data-k="foot1"></span><br>
+    <span data-k="foot2"></span><br>
+    <span data-k="foot3"></span>
+  </p>
+</div>
+
+<script>
+const STATIONS = [
+  {k:'omv', name:'OMV',       v:'--st-omv'},
+  {k:'rom', name:'Rompetrol', v:'--st-rom'},
+  {k:'luk', name:'Lukoil',    v:'--st-luk'},
+  {k:'mol', name:'MOL',       v:'--st-mol'},
+  {k:'pet', name:'Petrom',    v:'--st-pet'},
+];
+const ZONES=['city','hw'];
+
+const SEED = [
+  {name:'Red Bull', short:'RB', fmt:{ro:'250 ml',en:'250 ml'}, cat:'energy', prices:{omv:{p:11.30}, rom:{p:10.50}, luk:{p:12.49}}},
+  {name:'Red Bull', short:'RB 355', fmt:{ro:'355 ml',en:'355 ml'}, cat:'energy', prices:{omv:{p:15.60}, rom:{p:14.60}, luk:{p:16.99}}},
+  {name:'Monster', fmt:{ro:'',en:''}, cat:'energy', prices:{omv:{p:11.00}, rom:{p:10.70,promo:8.00}, luk:{p:11.49,promo:7.49}}},
+  {name:'Burn', fmt:{ro:'',en:''}, cat:'energy', prices:{omv:{p:10.30}, rom:{p:5.60}, luk:{p:8.99}}},
+  {name:'Burn 500', fmt:{ro:'500 ml',en:'500 ml'}, cat:'energy', prices:{omv:{p:13.10}, rom:{p:8.10}, luk:{p:11.49}}},
+  {name:'Figa', fmt:{ro:'',en:''}, cat:'energy', unsure:true, prices:{omv:{p:13.00}, rom:{p:11.40}}},
+  {name:'Viva', fmt:{ro:'marcă proprie OMV',en:'OMV private label'}, cat:'energy', prices:{omv:{p:6.50}}},
+  {name:'Hell', fmt:{ro:'',en:''}, cat:'energy', hell:true, prices:{omv:{p:7.20,promo:5.60}, rom:{p:7.20,promo:5.60}, luk:{p:6.50,promo:5.99}}},
+  {name:'Nescafé', fmt:{ro:'',en:''}, cat:'coffee', prices:{omv:{p:11.40}, rom:{p:11.80}}},
+  {name:'Cafea Mio', fmt:{ro:'',en:''}, cat:'coffee', prices:{omv:{p:16.80}, rom:{p:16.10}, luk:{p:16.99}}},
+  {name:'Viva', fmt:{ro:'cafea OMV',en:'OMV coffee'}, cat:'coffee', prices:{omv:{p:14.00}}},
+  {name:'Starbucks', short:'Stb', fmt:{ro:'',en:''}, cat:'coffee', prices:{omv:{p:20.40}}},
+  {name:'HIC — Hell Ice Coffee', short:'HIC', fmt:{ro:'',en:''}, cat:'coffee', hell:true, prices:{omv:{p:14.70,alt:12.80}, rom:{p:11.00}, luk:{p:11.99}}},
+  {name:'Xixo', fmt:{ro:'CSD Hell',en:'Hell CSD'}, cat:'csd', hell:true, prices:{omv:{p:5.10}}},
+];
+
+const I = {
+  ro:{
+    eyebrow:'Vizită de piață · actualizabil · 12 sep 2026',
+    h1:'Prețuri la raft — Hell vs concurență',
+    sub:'Dashboard editabil, oraș vs autostradă. Alege zona, apasă „Editează" și introdu prețurile — se salvează pe acest laptop. Exportă în Excel (CSV) sau fă backup ca să muți datele.',
+    zoneLabel:'Zonă:', zoneCity:'Oraș', zoneHw:'Autostradă', zoneCompare:'Comparație',
+    sec1h2:'Poziționare preț — energizante',
+    sec1subCity:'Preț mediu la raft în oraș, acolo unde e prezent (prețuri normale).',
+    sec1subHw:'Preț mediu la raft pe autostradă, acolo unde e prezent (prețuri normale).',
+    charth3:'Cine e mai ieftin în raft',
+    chartcap:'Sortat crescător după prețul mediu; Hell e marcat cu roșu.',
+    tabAll:'Toate', tabEnergy:'Energizante', tabCoffee:'Cafea RTD',
+    sec2h2:'Tabel prețuri',
+    sec2subZone:'Preț normal per stație; eticheta verde = preț promoțional. Celulele goale se completează în modul editare.',
+    sec2subCmp:'Oraș vs Autostradă per stație. Δ = Autostradă − Oraș (roșu = mai scump pe autostradă, verde = mai ieftin).',
+    editBtnOff:'✎ Editează', editBtnOn:'✓ Gata',
+    editHint:'Scrie prețul normal în celulă și, opțional, prețul promoțional dedesubt. Poți folosi virgulă (6,50) sau punct. Se salvează automat pe acest laptop. La final apasă „Gata".',
+    csvBtn:'⬇ Excel (CSV)', jsonBtn:'⬇ Backup', impBtn:'⬆ Încarcă backup', resetBtn:'↺ Reset',
+    installBtn:'📲 Instalează pe telefon', installTitle:'Instalează pe telefon',
+    installIos:'<b>Pe iPhone/iPad (Safari):</b> apasă butonul Partajare (□↑), apoi „Adaugă la ecranul principal".',
+    installAndroid:'<b>Pe Android (Chrome):</b> meniul ⋮ → „Instalează aplicația" / „Adaugă la ecranul principal".',
+    installNote:'Instalarea merge doar când pagina e deschisă de pe o adresă web (https://…), nu din fișierul local. Găzduiește fișierul pe un site și deschide adresa pe telefon.',
+    installClose:'Închide',
+    legendHeat:'ieftin → scump (în categorie)', legendPromo:'preț promoțional', legendHell:'produs propriu',
+    foot1:'<b>Legendă produse:</b> RB = Red Bull · HIC = Hell Ice Coffee (Hell) · Xixo = CSD Hell · Burn 500 / RB 355 = format mai mare · Stb = Starbucks · Viva = mărci proprii OMV (energizant + cafea).',
+    foot2:'<b>De confirmat cu tine:</b> „Figa" — ce brand/categorie e?',
+    foot3:'Datele (oraș + autostradă) se salvează local în browserul fiecărui laptop. Pentru a le muta: Backup (.json) + Încarcă. „Excel (CSV)" scoate ambele zone pentru raportare.',
+    cat:{energy:'Energizante', coffee:'Cafea RTD', csd:'CSD / Băuturi carbonatate'},
+    unsureTip:'De confirmat brand / categorie',
+    cur:'lei', locale:'ro-RO', none:'—',
+    cmpCity:'Oraș', cmpHw:'Autostr.', cmpD:'Δ %',
+    kZoneHellLab:'Hell — preț mediu la raft', kZoneHellNote:'Media pe stațiile unde Hell e prezent (zona selectată).',
+    kZoneCheapLab:'Cel mai ieftin energizant', kZoneCheapNote:'Cel mai mic preț mediu din categorie (include mărci proprii).',
+    kZoneVsRbLab:'Hell vs Red Bull', kZoneVsRbNote:'Diferența de preț mediu față de liderul de brand.',
+    kZoneHicLab:'HIC — interval preț', kZoneHicNote:'Poziționarea Hell Ice Coffee în cafea RTD.',
+    kCmpAvgLab:'Δ mediu autostradă vs oraș', kCmpAvgNote:'Media diferențelor unde ai completat ambele zone.',
+    kCmpMaxLab:'Cea mai mare scumpire', kCmpMaxNote:'Produsul/stația cu cel mai mare plus pe autostradă.',
+    kCmpHellLab:'Hell — Δ mediu', kCmpHellNote:'Cât e Hell mai scump pe autostradă vs oraș.',
+    kCmpCntLab:'Cazuri mai scumpe pe autostradă', kCmpCntNote:'Câte perechi produs×stație au preț mai mare pe autostradă.',
+    themeName:{auto:'auto', light:'clar', dark:'închis'}, themeLabel:'Temă',
+    langBtn:'<b>RO</b> · EN',
+    resetConfirm:'Ștergi toate prețurile introduse (oraș + autostradă) și revii la datele inițiale?',
+    importErr:'Fișier invalid. Folosește un backup .json exportat din acest dashboard.',
+    csvName:'preturi-hell', pricePh:'preț', promoPh:'promo',
+    thProduct:'Produs', catHead:'Categorie',
+    notesTitleCmp:'Observații — comparație oraș ↔ autostradă (auto)', notesTitleCity:'Observații — oraș (auto)', notesTitleHw:'Observații — autostradă (auto)'
+  },
+  en:{
+    eyebrow:'Market visit · updatable · Sep 12, 2026',
+    h1:'Shelf prices — Hell vs competitors',
+    sub:'Editable dashboard, city vs highway. Pick the zone, click "Edit" and enter prices — saved on this laptop. Export to Excel (CSV) or back up to move the data.',
+    zoneLabel:'Zone:', zoneCity:'City', zoneHw:'Highway', zoneCompare:'Comparison',
+    sec1h2:'Price positioning — energy drinks',
+    sec1subCity:'Average city shelf price where present (regular prices).',
+    sec1subHw:'Average highway shelf price where present (regular prices).',
+    charth3:"Who's cheaper on the shelf",
+    chartcap:'Sorted ascending by average price; Hell is marked in red.',
+    tabAll:'All', tabEnergy:'Energy drinks', tabCoffee:'RTD coffee',
+    sec2h2:'Price table',
+    sec2subZone:'Regular price per station; green tag = promo price. Empty cells are filled in edit mode.',
+    sec2subCmp:'City vs Highway per station. Δ = Highway − City (red = dearer on highway, green = cheaper).',
+    editBtnOff:'✎ Edit', editBtnOn:'✓ Done',
+    editHint:'Type the regular price in the cell and, optionally, the promo price below it. Comma (6.50) or dot both work. Saved automatically on this laptop. Click "Done" when finished.',
+    csvBtn:'⬇ Excel (CSV)', jsonBtn:'⬇ Backup', impBtn:'⬆ Load backup', resetBtn:'↺ Reset',
+    installBtn:'📲 Install on phone', installTitle:'Install on phone',
+    installIos:'<b>On iPhone/iPad (Safari):</b> tap the Share button (□↑), then "Add to Home Screen".',
+    installAndroid:'<b>On Android (Chrome):</b> menu ⋮ → "Install app" / "Add to Home screen".',
+    installNote:'Installing works only when the page is opened from a web address (https://…), not from the local file. Host the file on a site and open the address on your phone.',
+    installClose:'Close',
+    legendHeat:'cheap → expensive (within category)', legendPromo:'promo price', legendHell:'own product',
+    foot1:'<b>Product key:</b> RB = Red Bull · HIC = Hell Ice Coffee (Hell) · Xixo = Hell CSD · Burn 500 / RB 355 = larger format · Stb = Starbucks · Viva = OMV private labels (energy drink + coffee).',
+    foot2:'<b>To confirm with you:</b> "Figa" — what brand/category is it?',
+    foot3:'Data (city + highway) is saved locally in each laptop’s browser. To move it: Backup (.json) + Load. "Excel (CSV)" exports both zones for reporting.',
+    cat:{energy:'Energy drinks', coffee:'RTD coffee', csd:'CSD / Soft drinks'},
+    unsureTip:'To confirm brand / category',
+    cur:'RON', locale:'en-US', none:'—',
+    cmpCity:'City', cmpHw:'Hwy', cmpD:'Δ %',
+    kZoneHellLab:'Hell — average shelf price', kZoneHellNote:'Mean across stations where Hell is present (selected zone).',
+    kZoneCheapLab:'Cheapest energy drink', kZoneCheapNote:'Lowest average price in the category (incl. private labels).',
+    kZoneVsRbLab:'Hell vs Red Bull', kZoneVsRbNote:'Average-price gap against the brand leader.',
+    kZoneHicLab:'HIC — price range', kZoneHicNote:'Hell Ice Coffee positioning in RTD coffee.',
+    kCmpAvgLab:'Avg highway vs city gap', kCmpAvgNote:'Mean gap where both zones are filled.',
+    kCmpMaxLab:'Biggest markup', kCmpMaxNote:'Product/station most marked up on the highway.',
+    kCmpHellLab:'Hell — avg gap', kCmpHellNote:'How much more Hell costs on the highway vs city.',
+    kCmpCntLab:'Cases dearer on highway', kCmpCntNote:'How many product×station pairs are pricier on the highway.',
+    themeName:{auto:'auto', light:'light', dark:'dark'}, themeLabel:'Theme',
+    langBtn:'RO · <b>EN</b>',
+    resetConfirm:'Clear all entered prices (city + highway) and reset to the initial data?',
+    importErr:'Invalid file. Use a .json backup exported from this dashboard.',
+    csvName:'hell-prices', pricePh:'price', promoPh:'promo',
+    thProduct:'Product', catHead:'Category',
+    notesTitleCmp:'Notes — city ↔ highway comparison (auto)', notesTitleCity:'Notes — city (auto)', notesTitleHw:'Notes — highway (auto)'
+  },
+  hu:{
+    eyebrow:'Piackutatás · frissíthető · 2026. szept. 12.',
+    h1:'Polcárak — Hell vs. versenytársak',
+    sub:'Szerkeszthető irányítópult, város vs. autópálya. Válaszd ki a zónát, kattints a „Szerkesztés" gombra, és írd be az árakat — ezen a laptopon mentődik. Exportáld Excelbe (CSV), vagy készíts mentést az adatok átviteléhez.',
+    zoneLabel:'Zóna:', zoneCity:'Város', zoneHw:'Autópálya', zoneCompare:'Összehasonlítás',
+    sec1h2:'Árpozicionálás — energiaitalok',
+    sec1subCity:'Átlagos városi polcár, ahol jelen van (normál árak).',
+    sec1subHw:'Átlagos autópálya-polcár, ahol jelen van (normál árak).',
+    charth3:'Ki a legolcsóbb a polcon',
+    chartcap:'Növekvő sorrendben az átlagár szerint; a Hell pirossal jelölve.',
+    tabAll:'Összes', tabEnergy:'Energiaitalok', tabCoffee:'RTD kávé',
+    sec2h2:'Ártáblázat',
+    sec2subZone:'Normál ár állomásonként; a címke = akciós ár. Az üres cellák szerkesztő módban tölthetők ki.',
+    sec2subCmp:'Város vs. autópálya állomásonként. Δ = autópálya − város (piros = drágább az autópályán, szürke = olcsóbb).',
+    editBtnOff:'✎ Szerkesztés', editBtnOn:'✓ Kész',
+    editHint:'Írd be a normál árat a cellába, opcionálisan az akciós árat alá. Használhatsz vesszőt (6,50) vagy pontot. Automatikusan mentődik ezen a laptopon. Végül kattints a „Kész" gombra.',
+    csvBtn:'⬇ Excel (CSV)', jsonBtn:'⬇ Mentés', impBtn:'⬆ Mentés betöltése', resetBtn:'↺ Visszaállítás',
+    installBtn:'📲 Telepítés telefonra', installTitle:'Telepítés telefonra',
+    installIos:'<b>iPhone/iPad-en (Safari):</b> koppints a Megosztás gombra (□↑), majd „Hozzáadás a kezdőképernyőhöz".',
+    installAndroid:'<b>Androidon (Chrome):</b> ⋮ menü → „Alkalmazás telepítése" / „Hozzáadás a kezdőképernyőhöz".',
+    installNote:'A telepítés csak akkor működik, ha az oldalt webcímről (https://…) nyitod meg, nem helyi fájlból. Töltsd fel a fájlt egy webhelyre, és nyisd meg a címet a telefonon.',
+    installClose:'Bezárás',
+    legendHeat:'olcsó → drága (kategórián belül)', legendPromo:'akciós ár', legendHell:'saját termék',
+    foot1:'<b>Termékjelmagyarázat:</b> RB = Red Bull · HIC = Hell Ice Coffee (Hell) · Xixo = Hell CSD · Burn 500 / RB 355 = nagyobb kiszerelés · Stb = Starbucks · Viva = OMV saját márkák (energiaital + kávé).',
+    foot2:'<b>Veled egyeztetendő:</b> „Figa" — milyen márka/kategória?',
+    foot3:'Az adatok (város + autópálya) helyben, minden laptop böngészőjében mentődnek. Áthelyezéshez: Mentés (.json) + Betöltés. Az „Excel (CSV)" mindkét zónát exportálja jelentéshez.',
+    cat:{energy:'Energiaitalok', coffee:'RTD kávé', csd:'CSD / Szénsavas üdítők'},
+    unsureTip:'Egyeztetendő márka / kategória',
+    cur:'lej', locale:'hu-HU', none:'—',
+    cmpCity:'Város', cmpHw:'Autóp.', cmpD:'Δ %',
+    kZoneHellLab:'Hell — átlagos polcár', kZoneHellNote:'Átlag azokon az állomásokon, ahol a Hell jelen van (kiválasztott zóna).',
+    kZoneCheapLab:'Legolcsóbb energiaital', kZoneCheapNote:'A kategória legalacsonyabb átlagára (saját márkákkal együtt).',
+    kZoneVsRbLab:'Hell vs. Red Bull', kZoneVsRbNote:'Átlagár-különbség a márkavezérhez képest.',
+    kZoneHicLab:'HIC — ártartomány', kZoneHicNote:'A Hell Ice Coffee pozíciója az RTD kávékategóriában.',
+    kCmpAvgLab:'Átlagos autópálya vs. város eltérés', kCmpAvgNote:'Az eltérések átlaga, ahol mindkét zóna ki van töltve.',
+    kCmpMaxLab:'Legnagyobb felár', kCmpMaxNote:'A legnagyobb autópálya-felárú termék/állomás.',
+    kCmpHellLab:'Hell — átlagos eltérés', kCmpHellNote:'Mennyivel drágább a Hell az autópályán a városhoz képest.',
+    kCmpCntLab:'Autópályán drágább esetek', kCmpCntNote:'Hány termék×állomás pár drágább az autópályán.',
+    themeName:{auto:'auto', light:'világos', dark:'sötét'}, themeLabel:'Téma',
+    langBtn:'',
+    resetConfirm:'Törlöd az összes bevitt árat (város + autópálya), és visszaállítod a kiindulási adatokat?',
+    importErr:'Érvénytelen fájl. Használj egy ebből az irányítópultból exportált .json mentést.',
+    csvName:'hell-arak', pricePh:'ár', promoPh:'akció',
+    thProduct:'Termék', catHead:'Kategória',
+    notesTitleCmp:'Megjegyzések — város ↔ autópálya összehasonlítás (auto)', notesTitleCity:'Megjegyzések — város (auto)', notesTitleHw:'Megjegyzések — autópálya (auto)'
+  }
+};
+
+const STORE='pr_data_v4', OLD='pr_data_v3';
+const LANGS=['ro','en','hu'];
+let LANG='ro';
+try{const s=localStorage.getItem('pr_lang'); if(LANGS.includes(s))LANG=s;}catch(e){}
+const pick=(ro,en,hu)=>LANG==='hu'?hu:(LANG==='en'?en:ro);
+
+// ---------- data (nested: prices[station][zone] = {p,promo,alt}) ----------
+function buildData(){
+  return SEED.map(p=>{
+    const c=JSON.parse(JSON.stringify(p));
+    const np={};
+    for(const sk in c.prices){ np[sk]={city:c.prices[sk]}; }
+    c.prices=np; return c;
+  });
+}
+let data=buildData();
+function loadData(){
+  try{
+    const raw=localStorage.getItem(STORE);
+    if(raw){
+      const s=JSON.parse(raw);
+      if(s&&Array.isArray(s.prices)&&s.prices.length===SEED.length){ data.forEach((p,i)=>p.prices=s.prices[i]||{}); return; }
+    }
+    const old=localStorage.getItem(OLD); // migrate flat city prices
+    if(old){
+      const s=JSON.parse(old);
+      if(s&&Array.isArray(s.prices)&&s.prices.length===SEED.length){
+        data.forEach((p,i)=>{ const flat=s.prices[i]||{}; const np={}; for(const sk in flat){ np[sk]={city:flat[sk]}; } p.prices=np; });
+        saveData();
+      }
+    }
+  }catch(e){}
+}
+function saveData(){ try{ localStorage.setItem(STORE, JSON.stringify({v:4, prices:data.map(p=>p.prices)})); }catch(e){} }
+loadData();
+
+const T=()=>I[LANG];
+const fmtNum=(n)=>Number(n).toLocaleString(I[LANG].locale,{minimumFractionDigits:2,maximumFractionDigits:2});
+const parseNum=(s)=>{ if(s==null)return null; s=String(s).trim().replace(',','.'); if(s==='')return null; const v=parseFloat(s); return isFinite(v)?v:null; };
+const getD=(p,sk,zone)=> p.prices[sk]&&p.prices[sk][zone];
+function avgOf(p,zone){ const vals=STATIONS.map(s=>{const d=getD(p,s.k,zone); return d&&typeof d.p==='number'?d.p:null;}).filter(v=>v!=null); return vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : null; }
+function comparePairs(){ const out=[]; data.forEach(p=>STATIONS.forEach(s=>{ const c=getD(p,s.k,'city'),h=getD(p,s.k,'hw'); if(c&&h&&typeof c.p==='number'&&typeof h.p==='number'&&c.p>0) out.push({name:(p.short||p.name),station:s.name,d:h.p-c.p,pct:(h.p-c.p)/c.p*100,hell:!!p.hell}); })); return out; }
+
+// ---------- state ----------
+let viewMode='city';   // 'city' | 'hw' | 'compare'
+let editMode=false;
+let currentFilter='all';
+const chartZone=()=> viewMode==='compare'?'city':viewMode;
+
+// ---------- render ----------
+function renderStations(){
+  document.getElementById('stations').innerHTML = STATIONS.map(s=>`<div class="st"><span class="dot" style="background:var(${s.v})"></span><b>${s.name}</b></div>`).join('');
+}
+function catRanges(zone){
+  const r={};
+  ['energy','coffee','csd'].forEach(c=>{ let v=[]; data.filter(p=>p.cat===c).forEach(p=>STATIONS.forEach(s=>{const d=getD(p,s.k,zone); if(d&&typeof d.p==='number')v.push(d.p);})); r[c]=v.length?[Math.min(...v),Math.max(...v)]:[0,1]; });
+  return r;
+}
+function heatColor(v,min,max){ if(max===min)return 'var(--heat-0)'; const t=(v-min)/(max-min); const st=['--heat-0','--heat-1','--heat-2','--heat-3']; return `var(${st[Math.min(3,Math.floor(t*3+.0001))]})`; }
+
+function renderTable(){
+  const tb=document.getElementById('tbody'), th=document.getElementById('thead'), tbl=document.getElementById('ptable');
+  const L=T();
+  if(viewMode==='compare'){
+    tbl.className='cmp';
+    let h='<tr><th rowspan="2">'+L.thProduct+'</th>';
+    STATIONS.forEach(s=>{h+=`<th class="grp" colspan="3">${s.name}</th>`;});
+    h+='</tr><tr>';
+    STATIONS.forEach(()=>{h+=`<th class="sub grpsep-h">${L.cmpCity}</th><th class="sub">${L.cmpHw}</th><th class="sub">${L.cmpD}</th>`;});
+    h+='</tr>'; th.innerHTML=h;
+    tb.innerHTML=''; let lastCat=null;
+    data.forEach(p=>{
+      if(currentFilter!=='all'&&p.cat!==currentFilter)return;
+      if(p.cat!==lastCat){lastCat=p.cat; const cr=document.createElement('tr'); cr.className='cat-row'; cr.innerHTML=`<td colspan="${1+STATIONS.length*3}">${L.cat[p.cat]}</td>`; tb.appendChild(cr);}
+      const tr=document.createElement('tr'); if(p.hell)tr.className='hell';
+      const nm=p.short?`${p.name} <span style="color:var(--ink-3);font-weight:400">${p.short}</span>`:p.name;
+      let cells=`<td><span class="pname">${nm}</span></td>`;
+      STATIONS.forEach(s=>{
+        const c=getD(p,s.k,'city'),h2=getD(p,s.k,'hw');
+        const cv=c&&typeof c.p==='number'?fmtNum(c.p):'—';
+        const hv=h2&&typeof h2.p==='number'?fmtNum(h2.p):'—';
+        let dv='—',cls='dzero';
+        if(c&&h2&&typeof c.p==='number'&&typeof h2.p==='number'&&c.p>0){const pct=(h2.p-c.p)/c.p*100; if(Math.abs(pct)<0.5){dv='0%';cls='dzero';}else{dv=(pct>0?'+':'−')+Math.round(Math.abs(pct))+'%';cls=pct>0?'dpos':'dneg';}}
+        cells+=`<td class="grpsep">${cv}</td><td>${hv}</td><td class="${cls}">${dv}</td>`;
+      });
+      tr.innerHTML=cells; tb.appendChild(tr);
+    });
+    return;
+  }
+  // zone table
+  tbl.className='zone';
+  const zone=viewMode;
+  th.innerHTML='<tr><th>'+L.thProduct+'</th>'+STATIONS.map(s=>`<th>${s.name}</th>`).join('')+'</tr>';
+  tb.innerHTML=''; const rng=catRanges(zone); let lastCat=null;
+  data.forEach((p,pi)=>{
+    if(currentFilter!=='all'&&p.cat!==currentFilter)return;
+    if(p.cat!==lastCat){lastCat=p.cat; const cr=document.createElement('tr'); cr.className='cat-row'; cr.innerHTML=`<td colspan="${STATIONS.length+1}">${L.cat[p.cat]}</td>`; tb.appendChild(cr);}
+    const tr=document.createElement('tr'); if(p.hell)tr.className='hell';
+    const nm=p.short?`${p.name} <span style="color:var(--ink-3);font-weight:400">${p.short}</span>`:p.name;
+    const fmt=p.fmt[LANG];
+    const core=p.unsure?`<span class="u" title="${L.unsureTip}">${nm}</span>`:nm;
+    let cells=`<td><span class="pname">${core}${fmt?`<span class="fmt">${fmt}</span>`:''}</span></td>`;
+    const [mn,mx]=rng[p.cat];
+    STATIONS.forEach(s=>{
+      const d=getD(p,s.k,zone);
+      if(editMode){
+        const pv=d&&typeof d.p==='number'?d.p:'', pr=d&&typeof d.promo==='number'?d.promo:'';
+        cells+=`<td><span class="cell"><input class="pin" inputmode="decimal" data-pi="${pi}" data-sk="${s.k}" data-fld="p" value="${pv}" placeholder="${L.pricePh}"><input class="pin promo-in" inputmode="decimal" data-pi="${pi}" data-sk="${s.k}" data-fld="promo" value="${pr}" placeholder="${L.promoPh}"></span></td>`;
+        return;
+      }
+      if(!d||typeof d.p!=='number'){cells+='<td><span class="na">—</span></td>';return;}
+      const bg=heatColor(d.p,mn,mx);
+      const txt=(typeof d.alt==='number')?`${fmtNum(d.p)} / ${fmtNum(d.alt)}`:fmtNum(d.p);
+      let inner=`<span class="heat" style="background:${bg}">${txt}</span>`;
+      if(typeof d.promo==='number')inner+=`<span class="promo">promo ${fmtNum(d.promo)}</span>`;
+      cells+=`<td><span class="cell"><span class="price">${inner}</span></span></td>`;
+    });
+    tr.innerHTML=cells; tb.appendChild(tr);
+  });
+}
+
+function renderChart(animate){
+  const cur=T().cur, zone=chartZone();
+  const rows=data.filter(p=>p.cat==='energy'&&!p.unsure).map(p=>({label:p.short||p.name,avg:avgOf(p,zone),hell:p.hell})).filter(d=>d.avg!=null).sort((a,b)=>a.avg-b.avg);
+  const el=document.getElementById('bars');
+  if(!rows.length){el.innerHTML='<div class="chart-empty">—</div>';return;}
+  const cmax=Math.max(...rows.map(d=>d.avg));
+  el.innerHTML='';
+  rows.forEach(d=>{const row=document.createElement('div'); row.className='bar-row'+(d.hell?' is-hell':''); row.innerHTML=`<div class="bar-name">${d.label}</div><div class="bar-track"><div class="bar-fill" style="width:${animate?'2px':(d.avg/cmax*100).toFixed(1)+'%'}" data-w="${(d.avg/cmax*100).toFixed(1)}"></div><span class="bar-val">${fmtNum(d.avg)} ${cur}</span></div>`; el.appendChild(row);});
+  if(animate){const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches; requestAnimationFrame(()=>{const apply=()=>el.querySelectorAll('.bar-fill').forEach(f=>f.style.width=f.dataset.w+'%'); reduce?apply():setTimeout(apply,60);});}
+}
+
+function setKpi(i,lab,val,note){document.getElementById('kl'+i).textContent=lab;document.getElementById('kv'+i).textContent=val;document.getElementById('kn'+i).textContent=note;}
+function renderKPIs(){
+  const L=T(), cur=L.cur, none=L.none;
+  if(viewMode==='compare'){
+    const pr=comparePairs();
+    if(!pr.length){[1,2,3,4].forEach(i=>setKpi(i,[L.kCmpAvgLab,L.kCmpMaxLab,L.kCmpHellLab,L.kCmpCntLab][i-1],none,[L.kCmpAvgNote,L.kCmpMaxNote,L.kCmpHellNote,L.kCmpCntNote][i-1]));return;}
+    const pctStr=v=>(v>=0?'+':'−')+Math.round(Math.abs(v))+'%';
+    const avg=pr.reduce((a,b)=>a+b.pct,0)/pr.length;
+    const mx=pr.reduce((a,b)=>Math.abs(b.pct)>Math.abs(a.pct)?b:a);
+    const hp=pr.filter(x=>x.hell); const ha=hp.length?hp.reduce((a,b)=>a+b.pct,0)/hp.length:null;
+    const dearer=pr.filter(x=>x.pct>0).length;
+    setKpi(1,L.kCmpAvgLab,pctStr(avg),L.kCmpAvgNote);
+    setKpi(2,L.kCmpMaxLab,`${mx.name} · ${pctStr(mx.pct)}`,L.kCmpMaxNote);
+    setKpi(3,L.kCmpHellLab,ha==null?none:pctStr(ha),L.kCmpHellNote);
+    setKpi(4,L.kCmpCntLab,`${dearer} / ${pr.length}`,L.kCmpCntNote);
+    return;
+  }
+  const zone=viewMode;
+  const hell=data.find(p=>p.hell&&p.cat==='energy'), rb=data.find(p=>p.short==='RB');
+  const hellAvg=hell?avgOf(hell,zone):null, rbAvg=rb?avgOf(rb,zone):null;
+  let cheapest=null; data.filter(p=>p.cat==='energy').forEach(p=>{const a=avgOf(p,zone); if(a!=null&&(!cheapest||a<cheapest.a))cheapest={name:p.short||p.name,a};});
+  const hic=data.find(p=>p.hell&&p.cat==='coffee'); let hv=[]; if(hic)STATIONS.forEach(s=>{const d=getD(hic,s.k,zone); if(d){if(typeof d.p==='number')hv.push(d.p); if(typeof d.alt==='number')hv.push(d.alt);}});
+  setKpi(1,L.kZoneHellLab,hellAvg!=null?`${fmtNum(hellAvg)} ${cur}`:none,L.kZoneHellNote);
+  setKpi(2,L.kZoneCheapLab,cheapest?`${cheapest.name} · ${fmtNum(cheapest.a)}`:none,L.kZoneCheapNote);
+  setKpi(3,L.kZoneVsRbLab,(hellAvg!=null&&rbAvg)?((h=>((h>0?'+':'−')+Math.abs(h)+'%'))(Math.round((hellAvg/rbAvg-1)*100))):none,L.kZoneVsRbNote);
+  setKpi(4,L.kZoneHicLab,hv.length?`${fmtNum(Math.min(...hv))}–${fmtNum(Math.max(...hv))}`:none,L.kZoneHicNote);
+}
+
+function zoneNotes(zone){
+  const cur=T().cur, out=[];
+  const enr=data.filter(p=>p.cat==='energy');
+  const withAvg=enr.map(p=>({p,avg:avgOf(p,zone)})).filter(x=>x.avg!=null).sort((a,b)=>a.avg-b.avg);
+  if(!withAvg.length){out.push(pick('Nu ai completat încă prețuri pentru această zonă. Comută pe zona dorită, apasă „Editează" și introdu prețurile.','No prices entered for this zone yet. Switch to the zone, click "Edit" and add prices.','Ehhez a zónához még nem adtál meg árakat. Válts a kívánt zónára, kattints a „Szerkesztés" gombra, és írd be az árakat.'));return out;}
+  const hell=enr.find(p=>p.hell), hellAvg=hell?avgOf(hell,zone):null, cheap=withAvg[0], cn=cheap.p.short||cheap.p.name, cv=fmtNum(cheap.avg);
+  if(cheap.p.hell)out.push(pick(`<b>Hell = cel mai ieftin energizant</b> în această zonă (${cv} ${cur}).`,`<b>Hell = cheapest energy drink</b> in this zone (${cv} ${cur}).`,`<b>Hell = a legolcsóbb energiaital</b> ebben a zónában (${cv} ${cur}).`));
+  else{const rank=withAvg.findIndex(x=>x.p.hell); const rk=(hellAvg!=null&&rank>=0); const hv=hellAvg!=null?fmtNum(hellAvg):''; out.push(pick(`Cel mai ieftin energizant: <b>${cn}</b> (${cv} ${cur}).`+(rk?` Hell e pe locul ${rank+1} (${hv}).`:''),`Cheapest energy drink: <b>${cn}</b> (${cv} ${cur}).`+(rk?` Hell ranks #${rank+1} (${hv}).`:''),`A legolcsóbb energiaital: <b>${cn}</b> (${cv} ${cur}).`+(rk?` A Hell a(z) ${rank+1}. helyen (${hv}).`:'')));}
+  if(hell){const beat=[]; STATIONS.forEach(s=>{const hd=getD(hell,s.k,zone); if(!hd||typeof hd.p!=='number')return; let best=null; enr.filter(p=>!p.hell).forEach(p=>{const d=getD(p,s.k,zone); if(d&&typeof d.p==='number'&&(best==null||d.p<best.p))best={p:d.p,name:p.short||p.name};}); if(best&&best.p<hd.p)beat.push(`${s.name}: ${best.name} ${fmtNum(best.p)} < Hell ${fmtNum(hd.p)}`);});
+    if(beat.length)out.push(pick('<b>Unde Hell e bătut pe preț normal:</b> ','<b>Where Hell is beaten on regular price:</b> ','<b>Ahol a Hellt normál áron alulmúlják:</b> ')+beat.join(' · ')+'.');
+    else if(hellAvg!=null)out.push(pick('Hell nu e bătut pe preț normal de niciun brand în această zonă.','No brand beats Hell on regular price in this zone.','A Hellt egyetlen márka sem múlja alul normál áron ebben a zónában.'));
+    const promoS=STATIONS.filter(s=>{const d=getD(hell,s.k,zone);return d&&typeof d.promo==='number';}).map(s=>s.name);
+    if(promoS.length)out.push(pick('<b>Promo Hell activ la:</b> ','<b>Hell promo active at:</b> ','<b>Hell akció aktív itt:</b> ')+promoS.join(', ')+'.');
+  }
+  const hic=data.find(p=>p.hell&&p.cat==='coffee'), hicAvg=hic?avgOf(hic,zone):null, cof=data.filter(p=>p.cat==='coffee'&&!p.hell);
+  if(hicAvg!=null){const ca=cof.map(p=>avgOf(p,zone)).filter(a=>a!=null); if(ca.length){const cheaper=ca.filter(a=>a>hicAvg).length, hv=fmtNum(hicAvg); out.push(pick(`<b>HIC</b> (${hv}) e mai ieftin decât ${cheaper} din ${ca.length} cafele concurente.`,`<b>HIC</b> (${hv}) is cheaper than ${cheaper} of ${ca.length} competing coffees.`,`<b>HIC</b> (${hv}) olcsóbb, mint ${cheaper} a(z) ${ca.length} versenytárs kávéból.`));}}
+  return out;
+}
+function compareNotes(){
+  const cur=T().cur, out=[], pr=comparePairs();
+  if(!pr.length){out.push(pick('Completează prețurile pe autostradă (comută pe „Autostradă", apasă „Editează") ca să apară comparația.','Fill in the highway prices (switch to "Highway", click "Edit") to see the comparison.','Töltsd ki az autópálya-árakat (válts az „Autópálya" zónára, kattints a „Szerkesztés" gombra) az összehasonlításhoz.'));return out;}
+  const pctStr=v=>(v>=0?'+':'−')+Math.round(Math.abs(v))+'%';
+  const n=pr.length, avg=pr.reduce((a,b)=>a+b.pct,0)/n, aA=Math.round(Math.abs(avg));
+  out.push(pick(`În medie, autostrada e cu <b>${aA}%</b> mai ${avg>=0?'scumpă':'ieftină'} decât orașul (${n} perechi).`,`On average, the highway is <b>${aA}%</b> ${avg>=0?'dearer':'cheaper'} than the city (${n} pairs).`,`Átlagosan az autópálya <b>${aA}%</b>-kal ${avg>=0?'drágább':'olcsóbb'} a városnál (${n} pár).`));
+  const mx=pr.reduce((a,b)=>Math.abs(b.pct)>Math.abs(a.pct)?b:a), mxlei=(mx.d>=0?'+':'−')+fmtNum(Math.abs(mx.d));
+  out.push(pick(`Cea mai mare diferență: <b>${mx.name}</b> la ${mx.station} (${pctStr(mx.pct)} / ${mxlei} ${cur}).`,`Biggest gap: <b>${mx.name}</b> at ${mx.station} (${pctStr(mx.pct)} / ${mxlei} ${cur}).`,`A legnagyobb eltérés: <b>${mx.name}</b> itt: ${mx.station} (${pctStr(mx.pct)} / ${mxlei} ${cur}).`));
+  const hp=pr.filter(x=>x.hell); if(hp.length){const ha=hp.reduce((a,b)=>a+b.pct,0)/hp.length; out.push(pick(`Hell: în medie ${pctStr(ha)} pe autostradă vs oraș.`,`Hell: on average ${pctStr(ha)} on the highway vs city.`,`Hell: átlagosan ${pctStr(ha)} az autópályán a városhoz képest.`));}
+  const dearer=pr.filter(x=>x.pct>0).length; out.push(pick(`${dearer} din ${n} cazuri sunt mai scumpe pe autostradă.`,`${dearer} of ${n} cases are dearer on the highway.`,`${dearer} / ${n} eset drágább az autópályán.`));
+  return out;
+}
+function renderNotes(){
+  const L=T(), h=document.getElementById('notesH3');
+  h.textContent = viewMode==='compare'?L.notesTitleCmp:(viewMode==='hw'?L.notesTitleHw:L.notesTitleCity);
+  const items=viewMode==='compare'?compareNotes():zoneNotes(viewMode);
+  document.getElementById('noteslist').innerHTML=items.map(t=>`<li>${t}</li>`).join('');
+}
+
+function applyStatic(){
+  const L=T();
+  document.querySelectorAll('[data-k]').forEach(el=>{const v=L[el.dataset.k]; if(v!=null)el.innerHTML=v;});
+  document.documentElement.lang=LANG;
+  langbtn.innerHTML=LANGS.map(l=>l===LANG?`<b>${l.toUpperCase()}</b>`:l.toUpperCase()).join(' · ');
+  editbtn.textContent=editMode?L.editBtnOn:L.editBtnOff; editbtn.classList.toggle('on',editMode); editbtn.hidden=(viewMode==='compare');
+  installbtn.textContent=L.installBtn;
+  csvbtn.textContent=L.csvBtn; jsonbtn.textContent=L.jsonBtn; impbtn.textContent=L.impBtn; resetbtn.textContent=L.resetBtn;
+  document.getElementById('edithint').hidden=!editMode;
+  document.getElementById('legend').style.display = viewMode==='compare'?'none':'flex';
+  document.getElementById('sec1sub').textContent = chartZone()==='hw'?L.sec1subHw:L.sec1subCity;
+  document.getElementById('sec2sub').textContent = viewMode==='compare'?L.sec2subCmp:L.sec2subZone;
+  renderTheme();
+}
+function renderAll(anim){ applyStatic(); renderStations(); renderKPIs(); renderChart(anim!==false); renderTable(); renderNotes(); }
+
+// ---------- interactions ----------
+const langbtn=document.getElementById('langbtn'), themebtn=document.getElementById('themebtn'), editbtn=document.getElementById('editbtn'), installbtn=document.getElementById('installbtn');
+const csvbtn=document.getElementById('csvbtn'), jsonbtn=document.getElementById('jsonbtn'), impbtn=document.getElementById('impbtn'), resetbtn=document.getElementById('resetbtn'), fileinput=document.getElementById('fileinput');
+
+document.getElementById('zones').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return; [...document.querySelectorAll('#zones .tab')].forEach(t=>t.setAttribute('aria-selected',t===b)); viewMode=b.dataset.z; if(viewMode==='compare')editMode=false; renderAll(true);});
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return; [...document.querySelectorAll('#tabs .tab')].forEach(t=>t.setAttribute('aria-selected',t===b)); currentFilter=b.dataset.f; renderTable();});
+langbtn.addEventListener('click',()=>{LANG=LANGS[(LANGS.indexOf(LANG)+1)%LANGS.length]; try{localStorage.setItem('pr_lang',LANG);}catch(e){} renderAll(false);});
+editbtn.addEventListener('click',()=>{editMode=!editMode; applyStatic(); renderTable(); if(!editMode){renderKPIs();renderChart(false);renderNotes();}});
+
+document.getElementById('tbody').addEventListener('input',e=>{
+  const inp=e.target.closest('input.pin'); if(!inp)return;
+  const pi=+inp.dataset.pi, sk=inp.dataset.sk, fld=inp.dataset.fld, zone=viewMode, val=parseNum(inp.value);
+  const prices=data[pi].prices; if(!prices[sk])prices[sk]={}; if(!prices[sk][zone])prices[sk][zone]={};
+  const cell=prices[sk][zone];
+  if(val==null){delete cell[fld]; if(fld==='p')delete cell.alt; if(!Object.keys(cell).length){delete prices[sk][zone]; if(!Object.keys(prices[sk]).length)delete prices[sk];}}
+  else cell[fld]=val;
+  saveData(); renderKPIs(); renderChart(false); renderNotes();
+});
+
+function download(fn,text,mime){const b=new Blob([text],{type:mime||'text/plain;charset=utf-8'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),1500);}
+const today=()=>new Date().toISOString().slice(0,10);
+csvbtn.addEventListener('click',()=>{
+  const L=T(), sep=';', zl={city:L.zoneCity,hw:L.zoneHw};
+  const head=[L.thProduct,L.catHead,'Format'];
+  STATIONS.forEach(s=>ZONES.forEach(z=>{head.push(`${s.name} ${zl[z]}`); head.push(`${s.name} ${zl[z]} promo`);}));
+  const esc=c=>/[;"\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;
+  const num=n=>String(n).replace('.',',');
+  const lines=[head.map(esc).join(sep)];
+  data.forEach(p=>{
+    const row=[p.name+(p.short?' ('+p.short+')':''),L.cat[p.cat],p.fmt[LANG]||''];
+    STATIONS.forEach(s=>ZONES.forEach(z=>{const d=getD(p,s.k,z);
+      const pv=d&&typeof d.p==='number'?(typeof d.alt==='number'?num(d.p)+' / '+num(d.alt):num(d.p)):'';
+      const pr=d&&typeof d.promo==='number'?num(d.promo):'';
+      row.push(pv); row.push(pr);}));
+    lines.push(row.map(esc).join(sep));
+  });
+  download(`${L.csvName}-${today()}.csv`,'﻿'+lines.join('\r\n'),'text/csv;charset=utf-8');
+});
+jsonbtn.addEventListener('click',()=>download(`${T().csvName}-backup-${today()}.json`,JSON.stringify({v:4,exported:today(),prices:data.map(p=>p.prices)},null,2),'application/json'));
+impbtn.addEventListener('click',()=>fileinput.click());
+fileinput.addEventListener('change',e=>{const f=e.target.files&&e.target.files[0]; if(!f)return; const rd=new FileReader(); rd.onload=()=>{try{const o=JSON.parse(rd.result); if(!o||!Array.isArray(o.prices)||o.prices.length!==SEED.length)throw 0; if(o.v===4){data.forEach((p,i)=>p.prices=o.prices[i]||{});} else {data.forEach((p,i)=>{const flat=o.prices[i]||{}; const np={}; for(const sk in flat){np[sk]={city:flat[sk]};} p.prices=np;});} saveData(); renderAll(true);}catch(err){alert(T().importErr);} fileinput.value='';}; rd.readAsText(f);});
+resetbtn.addEventListener('click',()=>{if(!confirm(T().resetConfirm))return; try{localStorage.removeItem(STORE);localStorage.removeItem(OLD);}catch(e){} data=buildData(); saveData(); renderAll(true);});
+
+const modes=['auto','light','dark']; let mi=0;
+try{const tm=localStorage.getItem('pr_theme'); if(tm)mi=Math.max(0,modes.indexOf(tm));}catch(e){}
+function renderTheme(){const m=modes[mi]; if(m==='auto')document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',m); themebtn.textContent=I[LANG].themeLabel+': '+I[LANG].themeName[m];}
+themebtn.addEventListener('click',()=>{mi=(mi+1)%3; try{localStorage.setItem('pr_theme',modes[mi]);}catch(e){} renderTheme();});
+
+// ---------- PWA / instalare pe telefon ----------
+let deferredPrompt=null;
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();}
+function makeIcon(){try{const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');x.fillStyle='#d81e2c';rr(x,0,0,512,512,112);x.fill();x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';x.font='bold 300px Segoe UI, Arial, sans-serif';x.fillText('H',256,292);return c.toDataURL('image/png');}catch(e){return null;}}
+function setupPWA(){
+  const icon=makeIcon();
+  if(icon){const al=document.createElement('link');al.rel='apple-touch-icon';al.href=icon;document.head.appendChild(al);}
+  try{
+    const dir=location.href.replace(/[^/]*([?#].*)?$/,'');
+    const man={name:'Hell — Prețuri raft',short_name:'Prețuri Hell',start_url:location.href,scope:dir,display:'standalone',background_color:'#f5f3f0',theme_color:'#d81e2c',icons:icon?[{src:icon,sizes:'192x192',type:'image/png',purpose:'any'},{src:icon,sizes:'512x512',type:'image/png',purpose:'any maskable'}]:[]};
+    const url=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:'application/manifest+json'}));
+    const ml=document.createElement('link');ml.rel='manifest';ml.href=url;document.head.appendChild(ml);
+  }catch(e){}
+  installbtn.hidden = isStandalone();
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e; if(!isStandalone())installbtn.hidden=false;});
+window.addEventListener('appinstalled',()=>{installbtn.hidden=true;deferredPrompt=null;});
+installbtn.addEventListener('click',async()=>{
+  if(deferredPrompt){deferredPrompt.prompt(); try{await deferredPrompt.userChoice;}catch(e){} deferredPrompt=null; return;}
+  const L=T();
+  const ov=document.createElement('div'); ov.className='modal';
+  ov.innerHTML=`<div class="modal-card"><h3>${L.installTitle}</h3><p>${L.installIos}</p><p>${L.installAndroid}</p><p class="mnote">${L.installNote}</p><div style="text-align:right;margin-top:6px"><button class="btn close" type="button">${L.installClose}</button></div></div>`;
+  ov.addEventListener('click',e=>{if(e.target===ov||e.target.closest('.close'))ov.remove();});
+  document.body.appendChild(ov);
+});
+setupPWA();
+
+renderAll(true);
+</script>
