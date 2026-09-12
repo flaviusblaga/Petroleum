@@ -152,6 +152,17 @@
   .modal-card p{margin:0 0 12px;font-size:14px;color:var(--ink-2);line-height:1.55}
   .modal-card p b{color:var(--ink)}
   .modal-card .mnote{font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
+  .photobar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+  .photobar select{padding:9px 12px;border:1px solid var(--line-strong);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px}
+  .photogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .photocard{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface-2);box-shadow:var(--shadow)}
+  .photocard img{display:block;width:100%;height:130px;object-fit:cover;cursor:pointer}
+  .photocard .meta{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;font-size:12px;color:var(--ink-2);gap:6px}
+  .photocard .stn{font-weight:600;color:var(--ink)}
+  .photocard .del{border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:14px;line-height:1;padding:2px 5px;border-radius:6px}
+  .photocard .del:hover{color:var(--hell)}
+  .photoempty{grid-column:1/-1;color:var(--ink-3);font-size:13px;border:1px dashed var(--line-strong);border-radius:12px;padding:24px;text-align:center}
+  .lightbox img{max-width:100%;max-height:82vh;border-radius:10px;display:block}
 </style>
 
 <div class="wrap">
@@ -234,6 +245,17 @@
     <ul id="noteslist"></ul>
   </div>
 
+  <section>
+    <div class="sec-h"><h2 data-k="photosH2"></h2></div>
+    <p class="sec-sub" data-k="photosSub"></p>
+    <div class="photobar">
+      <button class="btn" id="addphotobtn" type="button" data-k="photoAdd"></button>
+      <select id="photoStation"></select>
+      <input type="file" id="photoinput" accept="image/*" capture="environment">
+    </div>
+    <div class="photogrid" id="photogrid"></div>
+  </section>
+
   <p class="foot">
     <span data-k="foot1"></span><br>
     <span data-k="foot2"></span><br>
@@ -291,6 +313,8 @@ const I = {
     installAndroid:'<b>Pe Android (Chrome):</b> meniul ⋮ → „Instalează aplicația" / „Adaugă la ecranul principal".',
     installNote:'Instalarea merge doar când pagina e deschisă de pe o adresă web (https://…), nu din fișierul local. Găzduiește fișierul pe un site și deschide adresa pe telefon.',
     installClose:'Închide',
+    photosH2:'Poze din stații', photosSub:'Adaugă poze de la raft (etichetă, facing, promo). Se salvează pe acest telefon.',
+    photoAdd:'📷 Adaugă poză', photoGeneral:'General', photoEmpty:'Nicio poză încă. Apasă „Adaugă poză".', photoDelTitle:'Șterge', photoDelConfirm:'Ștergi poza?',
     legendHeat:'ieftin → scump (în categorie)', legendPromo:'preț promoțional', legendHell:'produs propriu',
     foot1:'<b>Legendă produse:</b> RB = Red Bull · HIC = Hell Ice Coffee (Hell) · Xixo = CSD Hell · Burn 500 / RB 355 = format mai mare · Stb = Starbucks · Viva = mărci proprii OMV (energizant + cafea).',
     foot2:'<b>De confirmat cu tine:</b> „Figa" — ce brand/categorie e?',
@@ -301,7 +325,7 @@ const I = {
     cmpCity:'Oraș', cmpHw:'Autostr.', cmpD:'Δ %',
     kZoneHellLab:'Hell — preț mediu la raft', kZoneHellNote:'Media pe stațiile unde Hell e prezent (zona selectată).',
     kZoneCheapLab:'Cel mai ieftin energizant', kZoneCheapNote:'Cel mai mic preț mediu din categorie (include mărci proprii).',
-    kZoneVsRbLab:'Hell vs Red Bull', kZoneVsRbNote:'Diferența de preț mediu față de liderul de brand.',
+    kZoneVsRbLab:'Hell vs Red Bull', kZoneVsRbNote:'Diferența de preț mediu față de competitor RB.',
     kZoneHicLab:'HIC — interval preț', kZoneHicNote:'Poziționarea Hell Ice Coffee în cafea RTD.',
     kCmpAvgLab:'Δ mediu autostradă vs oraș', kCmpAvgNote:'Media diferențelor unde ai completat ambele zone.',
     kCmpMaxLab:'Cea mai mare scumpire', kCmpMaxNote:'Produsul/stația cu cel mai mare plus pe autostradă.',
@@ -337,6 +361,8 @@ const I = {
     installAndroid:'<b>On Android (Chrome):</b> menu ⋮ → "Install app" / "Add to Home screen".',
     installNote:'Installing works only when the page is opened from a web address (https://…), not from the local file. Host the file on a site and open the address on your phone.',
     installClose:'Close',
+    photosH2:'Station photos', photosSub:'Add shelf photos (labels, facing, promos). Saved on this phone.',
+    photoAdd:'📷 Add photo', photoGeneral:'General', photoEmpty:'No photos yet. Tap "Add photo".', photoDelTitle:'Delete', photoDelConfirm:'Delete photo?',
     legendHeat:'cheap → expensive (within category)', legendPromo:'promo price', legendHell:'own product',
     foot1:'<b>Product key:</b> RB = Red Bull · HIC = Hell Ice Coffee (Hell) · Xixo = Hell CSD · Burn 500 / RB 355 = larger format · Stb = Starbucks · Viva = OMV private labels (energy drink + coffee).',
     foot2:'<b>To confirm with you:</b> "Figa" — what brand/category is it?',
@@ -347,7 +373,7 @@ const I = {
     cmpCity:'City', cmpHw:'Hwy', cmpD:'Δ %',
     kZoneHellLab:'Hell — average shelf price', kZoneHellNote:'Mean across stations where Hell is present (selected zone).',
     kZoneCheapLab:'Cheapest energy drink', kZoneCheapNote:'Lowest average price in the category (incl. private labels).',
-    kZoneVsRbLab:'Hell vs Red Bull', kZoneVsRbNote:'Average-price gap against the brand leader.',
+    kZoneVsRbLab:'Hell vs Red Bull', kZoneVsRbNote:'Average-price gap vs competitor RB.',
     kZoneHicLab:'HIC — price range', kZoneHicNote:'Hell Ice Coffee positioning in RTD coffee.',
     kCmpAvgLab:'Avg highway vs city gap', kCmpAvgNote:'Mean gap where both zones are filled.',
     kCmpMaxLab:'Biggest markup', kCmpMaxNote:'Product/station most marked up on the highway.',
@@ -383,6 +409,8 @@ const I = {
     installAndroid:'<b>Androidon (Chrome):</b> ⋮ menü → „Alkalmazás telepítése" / „Hozzáadás a kezdőképernyőhöz".',
     installNote:'A telepítés csak akkor működik, ha az oldalt webcímről (https://…) nyitod meg, nem helyi fájlból. Töltsd fel a fájlt egy webhelyre, és nyisd meg a címet a telefonon.',
     installClose:'Bezárás',
+    photosH2:'Állomás fotók', photosSub:'Adj hozzá polcfotókat (címke, facing, akció). Ezen a telefonon mentődik.',
+    photoAdd:'📷 Fotó hozzáadása', photoGeneral:'Általános', photoEmpty:'Még nincs fotó. Koppints a „Fotó hozzáadása" gombra.', photoDelTitle:'Törlés', photoDelConfirm:'Törlöd a fotót?',
     legendHeat:'olcsó → drága (kategórián belül)', legendPromo:'akciós ár', legendHell:'saját termék',
     foot1:'<b>Termékjelmagyarázat:</b> RB = Red Bull · HIC = Hell Ice Coffee (Hell) · Xixo = Hell CSD · Burn 500 / RB 355 = nagyobb kiszerelés · Stb = Starbucks · Viva = OMV saját márkák (energiaital + kávé).',
     foot2:'<b>Veled egyeztetendő:</b> „Figa" — milyen márka/kategória?',
@@ -393,7 +421,7 @@ const I = {
     cmpCity:'Város', cmpHw:'Autóp.', cmpD:'Δ %',
     kZoneHellLab:'Hell — átlagos polcár', kZoneHellNote:'Átlag azokon az állomásokon, ahol a Hell jelen van (kiválasztott zóna).',
     kZoneCheapLab:'Legolcsóbb energiaital', kZoneCheapNote:'A kategória legalacsonyabb átlagára (saját márkákkal együtt).',
-    kZoneVsRbLab:'Hell vs. Red Bull', kZoneVsRbNote:'Átlagár-különbség a márkavezérhez képest.',
+    kZoneVsRbLab:'Hell vs. Red Bull', kZoneVsRbNote:'Átlagár-különbség az RB versenytárshoz képest.',
     kZoneHicLab:'HIC — ártartomány', kZoneHicNote:'A Hell Ice Coffee pozíciója az RTD kávékategóriában.',
     kCmpAvgLab:'Átlagos autópálya vs. város eltérés', kCmpAvgNote:'Az eltérések átlaga, ahol mindkét zóna ki van töltve.',
     kCmpMaxLab:'Legnagyobb felár', kCmpMaxNote:'A legnagyobb autópálya-felárú termék/állomás.',
@@ -628,7 +656,7 @@ const csvbtn=document.getElementById('csvbtn'), jsonbtn=document.getElementById(
 
 document.getElementById('zones').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return; [...document.querySelectorAll('#zones .tab')].forEach(t=>t.setAttribute('aria-selected',t===b)); viewMode=b.dataset.z; if(viewMode==='compare')editMode=false; renderAll(true);});
 document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return; [...document.querySelectorAll('#tabs .tab')].forEach(t=>t.setAttribute('aria-selected',t===b)); currentFilter=b.dataset.f; renderTable();});
-langbtn.addEventListener('click',()=>{LANG=LANGS[(LANGS.indexOf(LANG)+1)%LANGS.length]; try{localStorage.setItem('pr_lang',LANG);}catch(e){} renderAll(false);});
+langbtn.addEventListener('click',()=>{LANG=LANGS[(LANGS.indexOf(LANG)+1)%LANGS.length]; try{localStorage.setItem('pr_lang',LANG);}catch(e){} renderAll(false); if(typeof fillPhotoStations==='function'){fillPhotoStations();renderPhotos();}});
 editbtn.addEventListener('click',()=>{editMode=!editMode; applyStatic(); renderTable(); if(!editMode){renderKPIs();renderChart(false);renderNotes();}});
 
 document.getElementById('tbody').addEventListener('input',e=>{
@@ -697,6 +725,23 @@ installbtn.addEventListener('click',async()=>{
   document.body.appendChild(ov);
 });
 setupPWA();
+
+// ---------- Poze din stații (IndexedDB) ----------
+let photoDB=null;
+function openPhotoDB(){return new Promise((res,rej)=>{try{const r=indexedDB.open('hellPhotos',1);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('photos'))db.createObjectStore('photos',{keyPath:'id'});};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}catch(e){rej(e);}});}
+async function photoStore(mode){if(!photoDB)photoDB=await openPhotoDB();return photoDB.transaction('photos',mode).objectStore('photos');}
+async function photoAllRecs(){try{const st=await photoStore('readonly');return await new Promise(r=>{const q=st.getAll();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([]);});}catch(e){return[];}}
+async function photoPut(rec){const st=await photoStore('readwrite');return new Promise((res,rej)=>{const q=st.put(rec);q.onsuccess=()=>res();q.onerror=()=>rej(q.error);});}
+async function photoRemove(id){try{const st=await photoStore('readwrite');await new Promise(r=>{const q=st.delete(id);q.onsuccess=()=>r();q.onerror=()=>r();});}catch(e){}}
+function compressImage(file,maxDim,quality){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{URL.revokeObjectURL(url);let w=img.naturalWidth,h=img.naturalHeight;const sc=Math.min(1,maxDim/Math.max(w,h));w=Math.round(w*sc);h=Math.round(h*sc);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);try{res(c.toDataURL('image/jpeg',quality));}catch(e){rej(e);}};img.onerror=()=>{URL.revokeObjectURL(url);rej();};img.src=url;});}
+const photoStationSel=document.getElementById('photoStation');
+const photoinput=document.getElementById('photoinput'), photogrid=document.getElementById('photogrid');
+function fillPhotoStations(){const cur=photoStationSel.value;photoStationSel.innerHTML=`<option value="">${T().photoGeneral}</option>`+STATIONS.map(s=>`<option value="${s.k}">${s.name}</option>`).join('');photoStationSel.value=cur;}
+async function renderPhotos(){const L=T();const list=(await photoAllRecs()).sort((a,b)=>b.id-a.id);const stn=k=>{const s=STATIONS.find(x=>x.k===k);return s?s.name:L.photoGeneral;};photogrid.innerHTML = list.length? list.map(p=>`<div class="photocard"><img src="${p.src}" data-id="${p.id}" alt="${stn(p.station)}"><div class="meta"><span class="stn">${stn(p.station)}</span><span>${p.date||''}</span><button class="del" data-del="${p.id}" title="${L.photoDelTitle}">✕</button></div></div>`).join('') : `<div class="photoempty">${L.photoEmpty}</div>`;}
+document.getElementById('addphotobtn').addEventListener('click',()=>photoinput.click());
+photoinput.addEventListener('change',async e=>{const files=[...(e.target.files||[])];if(!files.length)return;const station=photoStationSel.value,date=new Date().toISOString().slice(0,10);for(const f of files){try{const src=await compressImage(f,1400,0.72);await photoPut({id:Date.now()+Math.floor(Math.random()*1000),station,date,src});}catch(err){}}e.target.value='';renderPhotos();});
+photogrid.addEventListener('click',async e=>{const del=e.target.closest('[data-del]');if(del){if(confirm(T().photoDelConfirm)){await photoRemove(+del.dataset.del);renderPhotos();}return;}const img=e.target.closest('img[data-id]');if(img){const ov=document.createElement('div');ov.className='modal';ov.innerHTML=`<div class="lightbox"><img src="${img.src}"></div>`;ov.addEventListener('click',()=>ov.remove());document.body.appendChild(ov);}});
+fillPhotoStations(); renderPhotos();
 
 renderAll(true);
 </script>
