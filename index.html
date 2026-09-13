@@ -329,6 +329,7 @@ const SEED = [
   {name:'Starbucks', short:'Stb', fmt:{ro:'',en:'',hu:''}, cat:'coffee', prices:{omv:{p:20.40}}},
   {name:'HIC — Hell Ice Coffee', short:'HIC', fmt:{ro:'',en:'',hu:''}, cat:'coffee', hell:true, prices:{omv:{p:14.70,alt:12.80}, rom:{p:11.00}, luk:{p:11.99}}},
   {name:'Xixo', fmt:{ro:'CSD Hell',en:'Hell CSD',hu:'Hell CSD'}, cat:'csd', hell:true, prices:{omv:{p:5.10}}},
+  {name:'Jim', fmt:{ro:'250 ml · marcă proprie MOL',en:'250 ml · MOL private label',hu:'250 ml · MOL saját márka'}, cat:'energy', prices:{}},
 ];
 
 const I = {
@@ -499,13 +500,13 @@ function loadData(){
     const raw=localStorage.getItem(STORE);
     if(raw){
       const s=JSON.parse(raw);
-      if(s&&Array.isArray(s.prices)&&s.prices.length===SEED.length){ data.forEach((p,i)=>p.prices=s.prices[i]||{}); return; }
+      if(s&&Array.isArray(s.prices)&&s.prices.length){ data.forEach((p,i)=>{ if(i<s.prices.length&&s.prices[i])p.prices=s.prices[i]; }); return; }
     }
     const old=localStorage.getItem(OLD); // migrate flat city prices
     if(old){
       const s=JSON.parse(old);
-      if(s&&Array.isArray(s.prices)&&s.prices.length===SEED.length){
-        data.forEach((p,i)=>{ const flat=s.prices[i]||{}; const np={}; for(const sk in flat){ np[sk]={city:flat[sk]}; } p.prices=np; });
+      if(s&&Array.isArray(s.prices)&&s.prices.length){
+        data.forEach((p,i)=>{ if(i>=s.prices.length)return; const flat=s.prices[i]||{}; const np={}; for(const sk in flat){ np[sk]={city:flat[sk]}; } p.prices=np; });
         saveData();
       }
     }
@@ -721,7 +722,7 @@ csvbtn.addEventListener('click',()=>{
 });
 jsonbtn.addEventListener('click',()=>download(`${T().csvName}-backup-${today()}.json`,JSON.stringify({v:4,exported:today(),prices:data.map(p=>p.prices)},null,2),'application/json'));
 impbtn.addEventListener('click',()=>fileinput.click());
-fileinput.addEventListener('change',e=>{const f=e.target.files&&e.target.files[0]; if(!f)return; const rd=new FileReader(); rd.onload=()=>{try{const o=JSON.parse(rd.result); if(!o||!Array.isArray(o.prices)||o.prices.length!==SEED.length)throw 0; if(o.v===4){data.forEach((p,i)=>p.prices=o.prices[i]||{});} else {data.forEach((p,i)=>{const flat=o.prices[i]||{}; const np={}; for(const sk in flat){np[sk]={city:flat[sk]};} p.prices=np;});} saveData(); renderAll(true);}catch(err){alert(T().importErr);} fileinput.value='';}; rd.readAsText(f);});
+fileinput.addEventListener('change',e=>{const f=e.target.files&&e.target.files[0]; if(!f)return; const rd=new FileReader(); rd.onload=()=>{try{const o=JSON.parse(rd.result); if(!o||!Array.isArray(o.prices)||!o.prices.length)throw 0; data=buildData(); if(o.v===4){data.forEach((p,i)=>{if(i<o.prices.length&&o.prices[i])p.prices=o.prices[i];});} else {data.forEach((p,i)=>{if(i>=o.prices.length)return; const flat=o.prices[i]||{}; const np={}; for(const sk in flat){np[sk]={city:flat[sk]};} p.prices=np;});} saveData(); renderAll(true);}catch(err){alert(T().importErr);} fileinput.value='';}; rd.readAsText(f);});
 resetbtn.addEventListener('click',()=>{if(!confirm(T().resetConfirm))return; try{localStorage.removeItem(STORE);localStorage.removeItem(OLD);}catch(e){} data=buildData(); saveData(); renderAll(true);});
 function printFallback(){
   const pf=currentFilter, pe=editMode;
