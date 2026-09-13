@@ -103,6 +103,8 @@
   .chart-empty{color:var(--ink-3);font-size:13px;padding:6px 0}
 
   .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);background:var(--surface)}
+  .tblsec{margin-bottom:22px}
+  .tbl-title{font-family:var(--f-disp);font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);margin:0 0 8px}
   table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
   table.zone{min-width:860px}
   table.cmp{min-width:1120px}
@@ -147,6 +149,8 @@
   body.exporting .controls,body.exporting #editbtn,body.exporting #pdfbtn,body.exporting #csvbtn,body.exporting #jsonbtn,body.exporting #impbtn,body.exporting #resetbtn,body.exporting .photobar{display:none!important}
   body.exporting .toolbar{margin-bottom:6px}
   body.exporting .tablewrap{overflow:visible!important}
+  body.exporting .photocard img{height:auto!important;object-fit:contain!important}
+  body.exporting .photogrid{grid-template-columns:repeat(5,1fr)!important;align-items:start}
 
   @media print{
     @page{size:A4 landscape;margin:11mm}
@@ -267,12 +271,7 @@
     </div>
     <p class="hint" id="edithint" hidden data-k="editHint"></p>
 
-    <div class="tablewrap">
-      <table id="ptable" class="zone">
-        <thead id="thead"></thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
+    <div id="tables"></div>
     <div class="legend" id="legend">
       <span class="item"><span class="sw"></span> <span data-k="legendHeat"></span></span>
       <span class="item"><span class="promo">promo</span> <span data-k="legendPromo"></span></span>
@@ -540,64 +539,54 @@ function catRanges(zone){
 function heatColor(v,min,max){ if(max===min)return 'var(--heat-0)'; const t=(v-min)/(max-min); const st=['--heat-0','--heat-1','--heat-2','--heat-3']; return `var(${st[Math.min(3,Math.floor(t*3+.0001))]})`; }
 
 function renderTable(){
-  const tb=document.getElementById('tbody'), th=document.getElementById('thead'), tbl=document.getElementById('ptable');
-  const L=T();
+  const L=T(); const host=document.getElementById('tables');
   if(viewMode==='compare'){
-    tbl.className='cmp';
-    let h='<tr><th rowspan="2">'+L.thProduct+'</th>';
+    let h='<div class="tablewrap"><table class="cmp"><thead><tr><th rowspan="2">'+L.thProduct+'</th>';
     STATIONS.forEach(s=>{h+=`<th class="grp" colspan="3">${s.name}</th>`;});
     h+='</tr><tr>';
-    STATIONS.forEach(()=>{h+=`<th class="sub grpsep-h">${L.cmpCity}</th><th class="sub">${L.cmpHw}</th><th class="sub">${L.cmpD}</th>`;});
-    h+='</tr>'; th.innerHTML=h;
-    tb.innerHTML=''; let lastCat=null;
+    STATIONS.forEach(()=>{h+=`<th class="sub">${L.cmpCity}</th><th class="sub">${L.cmpHw}</th><th class="sub">${L.cmpD}</th>`;});
+    h+='</tr></thead><tbody>'; let lastCat=null;
     data.forEach(p=>{
       if(currentFilter!=='all'&&p.cat!==currentFilter)return;
-      if(p.cat!==lastCat){lastCat=p.cat; const cr=document.createElement('tr'); cr.className='cat-row'; cr.innerHTML=`<td colspan="${1+STATIONS.length*3}">${L.cat[p.cat]}</td>`; tb.appendChild(cr);}
-      const tr=document.createElement('tr'); if(p.hell)tr.className='hell';
+      if(p.cat!==lastCat){lastCat=p.cat; h+=`<tr class="cat-row"><td colspan="${1+STATIONS.length*3}">${L.cat[p.cat]}</td></tr>`;}
       const nm=p.short?`${p.name} <span style="color:var(--ink-3);font-weight:400">${p.short}</span>`:p.name;
-      let cells=`<td><span class="pname">${nm}</span></td>`;
+      h+=`<tr class="${p.hell?'hell':''}"><td><span class="pname">${nm}</span></td>`;
       STATIONS.forEach(s=>{
         const c=getD(p,s.k,'city'),h2=getD(p,s.k,'hw');
-        const cv=c&&typeof c.p==='number'?fmtNum(c.p):'—';
-        const hv=h2&&typeof h2.p==='number'?fmtNum(h2.p):'—';
+        const cv=c&&typeof c.p==='number'?fmtNum(c.p):'—'; const hv=h2&&typeof h2.p==='number'?fmtNum(h2.p):'—';
         let dv='—',cls='dzero';
-        if(c&&h2&&typeof c.p==='number'&&typeof h2.p==='number'&&c.p>0){const pct=(h2.p-c.p)/c.p*100; if(Math.abs(pct)<0.5){dv='0%';cls='dzero';}else{dv=(pct>0?'+':'−')+Math.round(Math.abs(pct))+'%';cls=pct>0?'dpos':'dneg';}}
-        cells+=`<td class="grpsep">${cv}</td><td>${hv}</td><td class="${cls}">${dv}</td>`;
+        if(c&&h2&&typeof c.p==='number'&&typeof h2.p==='number'&&c.p>0){const pct=(h2.p-c.p)/c.p*100; if(Math.abs(pct)<0.5){dv='0%';}else{dv=(pct>0?'+':'−')+Math.round(Math.abs(pct))+'%';cls=pct>0?'dpos':'dneg';}}
+        h+=`<td class="grpsep">${cv}</td><td>${hv}</td><td class="${cls}">${dv}</td>`;
       });
-      tr.innerHTML=cells; tb.appendChild(tr);
+      h+='</tr>';
     });
-    return;
+    h+='</tbody></table></div>'; host.innerHTML=h; return;
   }
-  // zone table
-  tbl.className='zone';
-  const zone=viewMode;
-  th.innerHTML='<tr><th>'+L.thProduct+'</th>'+STATIONS.map(s=>`<th>${s.name}</th>`).join('')+'</tr>';
-  tb.innerHTML=''; const rng=catRanges(zone); let lastCat=null;
-  data.forEach((p,pi)=>{
-    if(currentFilter!=='all'&&p.cat!==currentFilter)return;
-    if(p.cat!==lastCat){lastCat=p.cat; const cr=document.createElement('tr'); cr.className='cat-row'; cr.innerHTML=`<td colspan="${STATIONS.length+1}">${L.cat[p.cat]}</td>`; tb.appendChild(cr);}
-    const tr=document.createElement('tr'); if(p.hell)tr.className='hell';
-    const nm=p.short?`${p.name} <span style="color:var(--ink-3);font-weight:400">${p.short}</span>`:p.name;
-    const fmt=p.fmt[LANG];
-    const core=p.unsure?`<span class="u" title="${L.unsureTip}">${nm}</span>`:nm;
-    let cells=`<td><span class="pname">${core}${fmt?`<span class="fmt">${fmt}</span>`:''}</span></td>`;
-    const [mn,mx]=rng[p.cat];
-    STATIONS.forEach(s=>{
-      const d=getD(p,s.k,zone);
-      if(editMode){
-        const pv=d&&typeof d.p==='number'?d.p:'', pr=d&&typeof d.promo==='number'?d.promo:'';
-        cells+=`<td><span class="cell"><input class="pin" inputmode="decimal" data-pi="${pi}" data-sk="${s.k}" data-fld="p" value="${pv}" placeholder="${L.pricePh}"><input class="pin promo-in" inputmode="decimal" data-pi="${pi}" data-sk="${s.k}" data-fld="promo" value="${pr}" placeholder="${L.promoPh}"></span></td>`;
-        return;
-      }
-      if(!d||typeof d.p!=='number'){cells+='<td><span class="na">—</span></td>';return;}
-      const bg=heatColor(d.p,mn,mx);
-      const txt=(typeof d.alt==='number')?`${fmtNum(d.p)} / ${fmtNum(d.alt)}`:fmtNum(d.p);
-      let inner=`<span class="heat" style="background:${bg}">${txt}</span>`;
-      if(typeof d.promo==='number')inner+=`<span class="promo">promo ${fmtNum(d.promo)}</span>`;
-      cells+=`<td><span class="cell"><span class="price">${inner}</span></span></td>`;
+  const zone=viewMode, rng=catRanges(zone); let out='';
+  ['energy','coffee','csd'].forEach(cat=>{
+    if(currentFilter!=='all'&&cat!==currentFilter)return;
+    const items=data.map((p,i)=>({p,i})).filter(o=>o.p.cat===cat);
+    if(!items.length)return;
+    const [mn,mx]=rng[cat];
+    let h=`<section class="tblsec"><h3 class="tbl-title">${L.cat[cat]}</h3><div class="tablewrap"><table class="zone"><thead><tr><th>${L.thProduct}</th>${STATIONS.map(s=>`<th>${s.name}</th>`).join('')}</tr></thead><tbody>`;
+    items.forEach(({p,i})=>{
+      const nm=p.short?`${p.name} <span style="color:var(--ink-3);font-weight:400">${p.short}</span>`:p.name;
+      const fmt=p.fmt[LANG], core=p.unsure?`<span class="u" title="${L.unsureTip}">${nm}</span>`:nm;
+      h+=`<tr class="${p.hell?'hell':''}"><td><span class="pname">${core}${fmt?`<span class="fmt">${fmt}</span>`:''}</span></td>`;
+      STATIONS.forEach(s=>{
+        const d=getD(p,s.k,zone);
+        if(editMode){ const pv=d&&typeof d.p==='number'?d.p:'', pr=d&&typeof d.promo==='number'?d.promo:'';
+          h+=`<td><span class="cell"><input class="pin" inputmode="decimal" data-pi="${i}" data-sk="${s.k}" data-fld="p" value="${pv}" placeholder="${L.pricePh}"><input class="pin promo-in" inputmode="decimal" data-pi="${i}" data-sk="${s.k}" data-fld="promo" value="${pr}" placeholder="${L.promoPh}"></span></td>`; return; }
+        if(!d||typeof d.p!=='number'){h+='<td><span class="na">—</span></td>';return;}
+        const bg=heatColor(d.p,mn,mx); const txt=(typeof d.alt==='number')?`${fmtNum(d.p)} / ${fmtNum(d.alt)}`:fmtNum(d.p);
+        let inner=`<span class="heat" style="background:${bg}">${txt}</span>`; if(typeof d.promo==='number')inner+=`<span class="promo">promo ${fmtNum(d.promo)}</span>`;
+        h+=`<td><span class="cell"><span class="price">${inner}</span></span></td>`;
+      });
+      h+='</tr>';
     });
-    tr.innerHTML=cells; tb.appendChild(tr);
+    h+='</tbody></table></div></section>'; out+=h;
   });
+  host.innerHTML=out;
 }
 
 function renderChart(animate){
@@ -701,7 +690,7 @@ document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.cl
 langbtn.addEventListener('click',()=>{LANG=LANGS[(LANGS.indexOf(LANG)+1)%LANGS.length]; try{localStorage.setItem('pr_lang',LANG);}catch(e){} renderAll(false); if(typeof fillPhotoStations==='function'){fillPhotoStations();renderPhotos();}});
 editbtn.addEventListener('click',()=>{editMode=!editMode; applyStatic(); renderTable(); if(!editMode){renderKPIs();renderChart(false);renderNotes();}});
 
-document.getElementById('tbody').addEventListener('input',e=>{
+document.getElementById('tables').addEventListener('input',e=>{
   const inp=e.target.closest('input.pin'); if(!inp)return;
   const pi=+inp.dataset.pi, sk=inp.dataset.sk, fld=inp.dataset.fld, zone=viewMode, val=parseNum(inp.value);
   const prices=data[pi].prices; if(!prices[sk])prices[sk]={}; if(!prices[sk][zone])prices[sk][zone]={};
@@ -761,20 +750,35 @@ async function generatePDF(){
   document.body.classList.add('exporting');
   window.scrollTo(0,0);
   const wrap=document.querySelector('.wrap');
+  const prevW=wrap.style.width, prevMW=wrap.style.maxWidth;
+  wrap.style.width='1100px'; wrap.style.maxWidth='none';
   const bg='#f5f3f0';
   await new Promise(r=>setTimeout(r,90));
   try{
-    const canvas=await H2C(wrap,{scale:2,backgroundColor:bg,windowWidth:1180,scrollX:0,scrollY:0,useCORS:true,logging:false});
-    const doc=new NS.jsPDF({orientation:'portrait',unit:'pt',format:'a4'});
+    const S=2;
+    const canvas=await H2C(wrap,{scale:S,backgroundColor:bg,useCORS:true,logging:false});
+    const doc=new NS.jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
     const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight();
-    const imgW=pageW, imgH=canvas.height*imgW/canvas.width;
-    const imgData=canvas.toDataURL('image/jpeg',0.92);
-    let pos=0, hLeft=imgH;
-    doc.addImage(imgData,'JPEG',0,pos,imgW,imgH,undefined,'FAST'); hLeft-=pageH;
-    while(hLeft>0){ pos-=pageH; doc.addPage(); doc.addImage(imgData,'JPEG',0,pos,imgW,imgH,undefined,'FAST'); hLeft-=pageH; }
+    const imgW=pageW, ptPerPx=imgW/canvas.width, pageCanvasH=Math.floor(pageH/ptPerPx);
+    const wrapTop=wrap.getBoundingClientRect().top;
+    const bset=new Set([0,canvas.height]);
+    wrap.querySelectorAll('.tblsec, .tblsec tbody tr, .cmp tbody tr, .kpi, #chartsec, .bar-row, .notes, .notes li, .photocard, .stations, .zonebar, .legend, .sec-h').forEach(el=>{ const b=Math.round((el.getBoundingClientRect().bottom-wrapTop)*S); if(b>0&&b<=canvas.height)bset.add(b); });
+    const bnds=[...bset].sort((a,b)=>a-b);
+    let top=0, first=true, guard=0;
+    while(top<canvas.height-1 && guard++<200){
+      let target=top+pageCanvasH, cut=-1;
+      for(const b of bnds){ if(b>top+12 && b<=target && b>cut)cut=b; }
+      if(cut<0)cut=Math.min(target,canvas.height);
+      const sliceH=Math.max(1,cut-top);
+      const tcv=document.createElement('canvas'); tcv.width=canvas.width; tcv.height=sliceH;
+      tcv.getContext('2d').drawImage(canvas,0,top,canvas.width,sliceH,0,0,canvas.width,sliceH);
+      if(!first)doc.addPage();
+      doc.addImage(tcv.toDataURL('image/jpeg',0.92),'JPEG',0,0,imgW,sliceH*ptPerPx,undefined,'FAST');
+      first=false; top=cut;
+    }
     doc.save('preturi-hell-'+today()+'.pdf');
   }catch(e){ printFallback(); }
-  finally{ document.body.classList.remove('exporting'); if(prevTheme)document.documentElement.setAttribute('data-theme',prevTheme); else document.documentElement.removeAttribute('data-theme'); currentFilter=pf; editMode=pe; applyStatic(); renderTable(); }
+  finally{ document.body.classList.remove('exporting'); wrap.style.width=prevW; wrap.style.maxWidth=prevMW; if(prevTheme)document.documentElement.setAttribute('data-theme',prevTheme); else document.documentElement.removeAttribute('data-theme'); currentFilter=pf; editMode=pe; applyStatic(); renderTable(); }
 }
 pdfbtn.addEventListener('click',()=>{ generatePDF().catch(()=>printFallback()); });
 
