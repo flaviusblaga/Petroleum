@@ -704,18 +704,27 @@ document.getElementById('tables').addEventListener('input',e=>{
 function download(fn,text,mime){const b=new Blob([text],{type:mime||'text/plain;charset=utf-8'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),1500);}
 const today=()=>new Date().toISOString().slice(0,10);
 csvbtn.addEventListener('click',()=>{
-  const L=T(), sep=';', zl={city:L.zoneCity,hw:L.zoneHw};
-  const head=[L.thProduct,L.catHead,'Format'];
-  STATIONS.forEach(s=>ZONES.forEach(z=>{head.push(`${s.name} ${zl[z]}`); head.push(`${s.name} ${zl[z]} promo`);}));
-  const esc=c=>/[;"\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;
-  const num=n=>String(n).replace('.',',');
-  const lines=[head.map(esc).join(sep)];
+  const L=T(), sep=';';
+  const esc=c=>{c=(c==null?'':''+c); return /[;"\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;};
+  const num=n=>(typeof n==='number')?fmtNum(n):'';
+  const fmtHead=LANG==='hu'?'Kiszerelés':(LANG==='en'?'Format':'Gramaj');
+  // group header (station names spanning 3) + sub header (Oraș / Autostradă / Δ)
+  const g=['','','']; STATIONS.forEach(s=>{g.push(s.name,'','');}); g.push('');
+  const h=[L.catHead,L.thProduct,fmtHead]; STATIONS.forEach(()=>h.push(L.zoneCity,L.zoneHw,'Δ')); h.push('Promo / Note');
+  const lines=[esc(L.h1), esc(new Date().toLocaleDateString(L.locale)), '', g.map(esc).join(sep), h.map(esc).join(sep)];
   data.forEach(p=>{
-    const row=[p.name+(p.short?' ('+p.short+')':''),L.cat[p.cat],p.fmt[LANG]||''];
-    STATIONS.forEach(s=>ZONES.forEach(z=>{const d=getD(p,s.k,z);
-      const pv=d&&typeof d.p==='number'?(typeof d.alt==='number'?num(d.p)+' / '+num(d.alt):num(d.p)):'';
-      const pr=d&&typeof d.promo==='number'?num(d.promo):'';
-      row.push(pv); row.push(pr);}));
+    const row=[L.cat[p.cat], p.name+(p.short?' ('+p.short+')':''), p.fmt[LANG]||''];
+    const notes=[];
+    STATIONS.forEach(s=>{
+      const c=getD(p,s.k,'city'), hh=getD(p,s.k,'hw');
+      const cp=c&&typeof c.p==='number'?c.p:null, hp=hh&&typeof hh.p==='number'?hh.p:null;
+      row.push(cp!=null?(typeof c.alt==='number'?num(cp)+' / '+num(c.alt):num(cp)):'');
+      row.push(hp!=null?num(hp):'');
+      row.push((cp!=null&&hp!=null)?num(hp-cp):'');
+      if(c&&typeof c.promo==='number')notes.push(s.name+' '+num(c.promo));
+      if(hh&&typeof hh.promo==='number')notes.push(s.name+' ('+L.zoneHw+') '+num(hh.promo));
+    });
+    row.push(notes.length?('Promo: '+notes.join(' · ')):'');
     lines.push(row.map(esc).join(sep));
   });
   download(`${L.csvName}-${today()}.csv`,'﻿'+lines.join('\r\n'),'text/csv;charset=utf-8');
