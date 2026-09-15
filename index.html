@@ -777,20 +777,6 @@ async function exportXLSX(){
   ws.mergeCells(r,1,r,NC); let nh=ws.getCell(r,1); nh.value=document.getElementById('notesH3').textContent; nh.font={name:AR,bold:true,size:11,color:{argb:C.ink}}; r++;
   [...document.querySelectorAll('#noteslist li')].forEach(li=>{ ws.mergeCells(r,1,r,NC); let cc=ws.getCell(r,1); cc.value='• '+li.textContent; cc.font={name:AR,size:9,color:{argb:C.ink}}; cc.alignment={wrapText:true}; ws.getRow(r).height=16; r++; });
   ws.views=[{state:'frozen',ySplit:SR,xSplit:3}];
-  const photos=(await photoAllRecs()).sort((a,b)=>b.id-a.id);
-  if(photos.length){
-    const ps=wb.addWorksheet('Poze',{views:[{showGridLines:false}]});
-    for(let c=1;c<=16;c++)ps.getColumn(c).width=11;
-    ps.mergeCells(1,1,1,12); let ph=ps.getCell(1,1); ph.value=L.photosH2; ph.font={name:AR,bold:true,size:14,color:{argb:C.ink}};
-    const cols=3, cellW=250, cellH=180, blockRows=12, blockCols=5;
-    for(let i=0;i<photos.length;i++){ const p=photos[i]; const img=await loadImg(p.src);
-      let dw=cellW,dh=cellH; if(img&&img.naturalWidth){ const ratio=img.naturalHeight/img.naturalWidth; if(ratio>=1){dh=cellH; dw=Math.round(cellH/ratio);} else {dw=cellW; dh=Math.round(cellW*ratio);} }
-      const rBlock=Math.floor(i/cols), cBlock=i%cols; const rowTop=2+rBlock*blockRows, colLeft=(cBlock*blockCols);
-      const b64=p.src.indexOf(',')>=0?p.src.split(',')[1]:p.src; const id=wb.addImage({base64:b64, extension:'jpeg'});
-      ps.addImage(id,{tl:{col:colLeft,row:rowTop}, ext:{width:dw,height:dh}});
-      const st=STATIONS.find(s=>s.k===p.station); let cap=ps.getCell(rowTop+10, colLeft+1); cap.value=(st?st.name:L.photoGeneral)+' · '+(p.date||''); cap.font={name:AR,size:9,color:{argb:'FF555555'}};
-    }
-  }
   const buf=await wb.xlsx.writeBuffer();
   download(L.csvName+'-'+today()+'.xlsx', buf, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 }
@@ -829,20 +815,19 @@ async function generatePDF(modes){
   const gray=[130,120,110], red=[168,20,33], pinkFill=[251,233,234], catFill=[240,238,233], HS={font:FONT,fontStyle:'bold',fillColor:[244,242,239],textColor:[60,60,60]};
   const prevView=viewMode; const multi=modes.length>1;
   let y=34;
-  SF('bold'); doc.setFontSize(15); doc.setTextColor(20,20,20); doc.text(X(L.h1),M,y); y+=15;
-  SF('normal'); doc.setFontSize(9); doc.setTextColor(120,120,120); doc.text(X(new Date().toLocaleDateString(L.locale)),M,y); y+=16;
+  if(!multi){ SF('bold'); doc.setFontSize(15); doc.setTextColor(20,20,20); doc.text(X(L.h1),M,y); y+=15; SF('normal'); doc.setFontSize(9); doc.setTextColor(120,120,120); doc.text(X(new Date().toLocaleDateString(L.locale)),M,y); y+=16; }
   for(let mIdx=0;mIdx<modes.length;mIdx++){
     const mode=modes[mIdx]; viewMode=mode; renderKPIs(); renderNotes();
     if(mIdx>0){ doc.addPage(); y=34; }
-    if(multi){ SF('bold'); doc.setFontSize(13); doc.setTextColor(216,30,44); doc.text(X(pdfZoneLabel(mode)),M,y); y+=17; }
+    if(multi){ SF('bold'); doc.setFontSize(14); doc.setTextColor(216,30,44); doc.text(X(pdfZoneLabel(mode)),M,y); SF('normal'); doc.setFontSize(8); doc.setTextColor(120,120,120); doc.text(X(L.h1+'  -  '+new Date().toLocaleDateString(L.locale)),M,y+12); y+=24; }
     const kpis=[1,2,3,4].map(i=>({l:document.getElementById('kl'+i).textContent,v:document.getElementById('kv'+i).textContent}));
-    const kg=10, kw=(PW-2*M-3*kg)/4, kh=48, ky=y;
+    const kg=10, kw=(PW-2*M-3*kg)/4, kh=(multi?40:48), ky=y;
     kpis.forEach((k,i)=>{const x=M+i*(kw+kg);
       if(i===0){doc.setFillColor(251,233,234);doc.setDrawColor(216,30,44);doc.setLineWidth(1.1);doc.roundedRect(x,ky,kw,kh,4,4,'FD');}
       else{doc.setFillColor(255,255,255);doc.setDrawColor(210,206,200);doc.setLineWidth(0.6);doc.roundedRect(x,ky,kw,kh,4,4,'S');}
       SF('normal');doc.setFontSize(6.6);doc.setTextColor(140,140,140);doc.text(doc.splitTextToSize(X(k.l),kw-14),x+7,ky+12);
       SF('bold');doc.setFontSize(13);doc.setTextColor(i===0?168:30,i===0?20:30,i===0?33:30);doc.text(X(k.v),x+7,ky+37);});
-    y=ky+kh+16;
+    y=ky+kh+(multi?11:16);
     if(mode==='compare'){
       const dh=fontOK?'Δ%':'Dif%';
       const head=[[{content:X(L.thProduct),rowSpan:2}].concat(STATIONS.map(s=>({content:X(s.name),colSpan:3,styles:{halign:'center'}}))),
@@ -857,29 +842,29 @@ async function generatePDF(modes){
         if(p.hell) row.forEach(c=>{c.styles=Object.assign({fillColor:pinkFill},c.styles||{});});
         body.push(row);});
       doc.autoTable({head,body,startY:y,margin:{left:M,right:M},theme:'grid',styles:{font:FONT,fontSize:7,cellPadding:2,lineColor:[220,220,220],lineWidth:0.5},headStyles:HS});
-      y=doc.lastAutoTable.finalY+16;
+      y=doc.lastAutoTable.finalY+(multi?9:16);
     } else {
       const zone=mode, fmtHead=LANG==='hu'?'Kiszereles':(LANG==='en'?'Format':'Gramaj');
       ['energy','coffee','csd'].forEach(cat=>{
         const items=data.filter(p=>p.cat===cat); if(!items.length)return;
-        if(y>PH-90){doc.addPage();y=34;}
-        SF('bold'); doc.setFontSize(10.5); doc.setTextColor(40,40,40); doc.text(X(L.cat[cat]),M,y);
+        if(!multi&&y>PH-90){doc.addPage();y=34;}
+        SF('bold'); doc.setFontSize(multi?9:10.5); doc.setTextColor(40,40,40); doc.text(X(L.cat[cat]),M,y);
         const head=[[X(L.thProduct),X(fmtHead)].concat(STATIONS.map(s=>X(s.name)))];
         const body=items.map(p=>{
           const row=[{content:X(p.name+(p.short?' '+p.short:'')),styles:{halign:'left',fontStyle:'bold'}},{content:X(p.fmt[LANG]||''),styles:{textColor:gray,fontSize:7,halign:'left'}}];
           STATIONS.forEach(s=>{const dd=getD(p,s.k,zone); let t='-'; if(dd&&typeof dd.p==='number'){t=(typeof dd.alt==='number')?fmtNum(dd.p)+' / '+fmtNum(dd.alt):fmtNum(dd.p); if(typeof dd.promo==='number')t+='\npromo '+fmtNum(dd.promo);} row.push({content:t,styles:{halign:'right'}});});
           if(p.hell) row.forEach(c=>{c.styles=Object.assign({fillColor:pinkFill},c.styles||{});});
           return row;});
-        doc.autoTable({head,body,startY:y+5,margin:{left:M,right:M},theme:'grid',styles:{font:FONT,fontSize:8,cellPadding:3,lineColor:[220,220,220],lineWidth:0.5,valign:'middle'},headStyles:HS,columnStyles:{0:{halign:'left'},1:{halign:'left'}}});
-        y=doc.lastAutoTable.finalY+16;
+        doc.autoTable({head,body,startY:y+5,margin:{left:M,right:M},theme:'grid',styles:{font:FONT,fontSize:(multi?7:8),cellPadding:(multi?2:3),lineColor:[220,220,220],lineWidth:0.5,valign:'middle'},headStyles:HS,columnStyles:{0:{halign:'left'},1:{halign:'left'}}});
+        y=doc.lastAutoTable.finalY+(multi?9:16);
       });
     }
     const noteItems=[...document.querySelectorAll('#noteslist li')].map(li=>li.textContent);
     if(noteItems.length){
-      if(y>PH-70){doc.addPage();y=34;}
+      if(!multi&&y>PH-70){doc.addPage();y=34;}
       SF('bold');doc.setFontSize(10);doc.setTextColor(30,30,30);doc.text(X(document.getElementById('notesH3').textContent),M,y);y+=13;
-      SF('normal');doc.setFontSize(8.5);doc.setTextColor(60,60,60);
-      noteItems.forEach(n=>{const lines=doc.splitTextToSize(X('- '+n),PW-2*M); if(y+lines.length*11>PH-24){doc.addPage();y=34;} doc.text(lines,M,y); y+=lines.length*11+3;});
+      SF('normal');doc.setFontSize(multi?7.5:8.5);doc.setTextColor(60,60,60);
+      noteItems.forEach(n=>{const lh=multi?10:11; const lines=doc.splitTextToSize(X('- '+n),PW-2*M); if(!multi&&y+lines.length*lh>PH-24){doc.addPage();y=34;} doc.text(lines,M,y); y+=lines.length*lh+2;});
     }
   }
   viewMode=prevView; renderKPIs(); renderNotes();
