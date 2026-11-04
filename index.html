@@ -793,25 +793,29 @@ async function exportXLSX(){
   const anyFac=data.some(p=>STATIONS.some(s=>ZONES.some(z=>hasFac(getD(p,s.k,z)))));
   if(anyFac){
     const fs=wb.addWorksheet(L.facLbl,{views:[{showGridLines:false}]});
-    const FNC=2+STATIONS.length*2;
-    fs.getColumn(1).width=13; fs.getColumn(2).width=22; for(let cX=3;cX<=FNC;cX++)fs.getColumn(cX).width=12;
-    fs.mergeCells(1,1,1,FNC); let ft=fs.getCell(1,1); ft.value=L.facLbl+' — '+L.h1; ft.font={name:AR,bold:true,size:14,color:{argb:C.ink}};
-    fs.mergeCells(2,1,2,FNC); let fsub=fs.getCell(2,1); fsub.value=(LANG==='ro'?'Număr fețe la raft: total (clasic + arome) per stație și zonă':(LANG==='hu'?'Polcfelületek: összesen (klassz + ízek) állomásonként és zónánként':'Shelf facings: total (classic + flavors) per station and zone')); fsub.font={name:AR,size:9,color:{argb:C.gray}};
-    [[4,1,L.catHead],[4,2,L.thProduct]].forEach(([rr,cc,val])=>{fs.mergeCells(rr,cc,5,cc); let cell=fs.getCell(rr,cc); cell.value=val; cell.font={name:AR,bold:true,size:9,color:{argb:C.white}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.headDark}}; cell.alignment={vertical:'middle'}; cell.border=bd;});
-    let fcc=3;
-    STATIONS.forEach(s=>{ fs.mergeCells(4,fcc,4,fcc+1); let gc=fs.getCell(4,fcc); gc.value=s.name; gc.font={name:AR,bold:true,size:10,color:{argb:C.white}}; gc.alignment={horizontal:'center'}; for(let k=0;k<2;k++){let cc=fs.getCell(4,fcc+k); cc.fill={type:'pattern',pattern:'solid',fgColor:{argb:stC[s.k]}}; cc.border=bd;}
-      [L.zoneCity,L.zoneHw].forEach((lab,k)=>{let cc=fs.getCell(5,fcc+k); cc.value=lab; cc.font={name:AR,bold:true,size:8,color:{argb:C.ink}}; cc.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.sub}}; cc.alignment={horizontal:'center'}; cc.border=bd;}); fcc+=2; });
-    let fr=6;
-    ['energy','coffee','csd'].forEach(cat=>{ const items=data.filter(p=>p.cat===cat&&STATIONS.some(s=>ZONES.some(z=>hasFac(getD(p,s.k,z))))); if(!items.length)return;
-      fs.mergeCells(fr,1,fr,FNC); let cr=fs.getCell(fr,1); cr.value=L.cat[cat]; cr.font={name:AR,bold:true,size:9,color:{argb:C.gray}}; cr.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.cat}}; fr++;
-      items.forEach(p=>{
-        let a=fs.getCell(fr,1); a.value=L.cat[cat]; a.font={name:AR,size:9,color:{argb:C.gray}}; a.border=bd;
-        let b=fs.getCell(fr,2); b.value=p.name+(p.short?' ('+p.short+')':''); b.font={name:AR,size:10,bold:true,color:{argb:p.hell?C.hellText:C.ink}}; b.border=bd;
-        if(p.hell){a.fill=b.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.hellFill}};}
-        let cc2=3; STATIONS.forEach(s=>{ ZONES.forEach(z=>{ const d=getD(p,s.k,z); let cell=fs.getCell(fr,cc2); if(hasFac(d))cell.value=facOf(d); cell.font={name:AR,size:9,color:{argb:C.ink}}; cell.alignment={horizontal:'center'}; cell.border=bd; if(p.hell)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.hellFill}}; cc2++; }); });
+    const H = LANG==='hu'?['Kategória','Termék','Állomás','Zóna','Klasszikus felületek','Ízek felületek','Összes felület']
+            : LANG==='en'?['Category','Product','Station','Zone','Classic facings','Flavor facings','Total facings']
+            : ['Categorie','Produs','Stație','Zonă','Fețe clasic','Fețe arome','Total fețe'];
+    [13,24,13,12,14,13,12].forEach((w,i)=>fs.getColumn(i+1).width=w);
+    fs.mergeCells(1,1,1,7); let ft=fs.getCell(1,1); ft.value=L.facLbl+' — '+L.h1; ft.font={name:AR,bold:true,size:14,color:{argb:C.ink}};
+    fs.mergeCells(2,1,2,7); let fsub=fs.getCell(2,1); fsub.value=(LANG==='ro'?'Număr fețe (doze) expuse la raft, pe fiecare stație și zonă':(LANG==='hu'?'Polcon kihelyezett felületek száma állomásonként és zónánként':'Number of shelf facings per station and zone')); fsub.font={name:AR,size:9,color:{argb:C.gray}};
+    H.forEach((h,i)=>{let cell=fs.getCell(4,i+1); cell.value=h; cell.font={name:AR,bold:true,size:9,color:{argb:C.white}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.headDark}}; cell.alignment={vertical:'middle',wrapText:true,horizontal:i<4?'left':'center'}; cell.border=bd;});
+    const zlab={city:L.zoneCity,hw:L.zoneHw};
+    let fr=5;
+    ['energy','coffee','csd'].forEach(cat=>{ data.filter(p=>p.cat===cat).forEach(p=>{
+      STATIONS.forEach(s=>{ ZONES.forEach(z=>{ const d=getD(p,s.k,z); if(!hasFac(d))return;
+        const cls=d.fc||0, ar=d.fa||0;
+        [L.cat[cat], p.name+(p.short?' ('+p.short+')':''), s.name, zlab[z], cls, ar, cls+ar].forEach((v,i)=>{
+          let cell=fs.getCell(fr,i+1); cell.value=v; cell.border=bd;
+          cell.font={name:AR,size:9,bold:(i===1||i===6),color:{argb:p.hell?C.hellText:C.ink}};
+          cell.alignment={horizontal:i<4?'left':'center'};
+          if(p.hell)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.hellFill}};
+        });
         fr++;
       }); });
-    fs.views=[{state:'frozen',ySplit:5,xSplit:2}];
+    }); });
+    fs.views=[{state:'frozen',ySplit:4,xSplit:2}];
+    if(fr>5)fs.autoFilter={from:{row:4,column:1},to:{row:4,column:7}};
   }
   const buf=await wb.xlsx.writeBuffer();
   download(L.csvName+'-'+today()+'.xlsx', buf, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
