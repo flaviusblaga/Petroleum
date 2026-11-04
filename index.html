@@ -788,6 +788,31 @@ async function exportXLSX(){
   ws.mergeCells(r,1,r,NC); let nh=ws.getCell(r,1); nh.value=document.getElementById('notesH3').textContent; nh.font={name:AR,bold:true,size:11,color:{argb:C.ink}}; r++;
   [...document.querySelectorAll('#noteslist li')].forEach(li=>{ ws.mergeCells(r,1,r,NC); let cc=ws.getCell(r,1); cc.value='• '+li.textContent; cc.font={name:AR,size:9,color:{argb:C.ink}}; cc.alignment={wrapText:true}; ws.getRow(r).height=16; r++; });
   ws.views=[{state:'frozen',ySplit:SR,xSplit:3}];
+  const hasFac=d=>d&&(typeof d.fc==='number'||typeof d.fa==='number');
+  const facOf=d=>((d.fc||0)+(d.fa||0))+' ('+(d.fc||0)+'+'+(d.fa||0)+')';
+  const anyFac=data.some(p=>STATIONS.some(s=>ZONES.some(z=>hasFac(getD(p,s.k,z)))));
+  if(anyFac){
+    const fs=wb.addWorksheet(L.facLbl,{views:[{showGridLines:false}]});
+    const FNC=2+STATIONS.length*2;
+    fs.getColumn(1).width=13; fs.getColumn(2).width=22; for(let cX=3;cX<=FNC;cX++)fs.getColumn(cX).width=12;
+    fs.mergeCells(1,1,1,FNC); let ft=fs.getCell(1,1); ft.value=L.facLbl+' — '+L.h1; ft.font={name:AR,bold:true,size:14,color:{argb:C.ink}};
+    fs.mergeCells(2,1,2,FNC); let fsub=fs.getCell(2,1); fsub.value=(LANG==='ro'?'Număr fețe la raft: total (clasic + arome) per stație și zonă':(LANG==='hu'?'Polcfelületek: összesen (klassz + ízek) állomásonként és zónánként':'Shelf facings: total (classic + flavors) per station and zone')); fsub.font={name:AR,size:9,color:{argb:C.gray}};
+    [[4,1,L.catHead],[4,2,L.thProduct]].forEach(([rr,cc,val])=>{fs.mergeCells(rr,cc,5,cc); let cell=fs.getCell(rr,cc); cell.value=val; cell.font={name:AR,bold:true,size:9,color:{argb:C.white}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.headDark}}; cell.alignment={vertical:'middle'}; cell.border=bd;});
+    let fcc=3;
+    STATIONS.forEach(s=>{ fs.mergeCells(4,fcc,4,fcc+1); let gc=fs.getCell(4,fcc); gc.value=s.name; gc.font={name:AR,bold:true,size:10,color:{argb:C.white}}; gc.alignment={horizontal:'center'}; for(let k=0;k<2;k++){let cc=fs.getCell(4,fcc+k); cc.fill={type:'pattern',pattern:'solid',fgColor:{argb:stC[s.k]}}; cc.border=bd;}
+      [L.zoneCity,L.zoneHw].forEach((lab,k)=>{let cc=fs.getCell(5,fcc+k); cc.value=lab; cc.font={name:AR,bold:true,size:8,color:{argb:C.ink}}; cc.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.sub}}; cc.alignment={horizontal:'center'}; cc.border=bd;}); fcc+=2; });
+    let fr=6;
+    ['energy','coffee','csd'].forEach(cat=>{ const items=data.filter(p=>p.cat===cat&&STATIONS.some(s=>ZONES.some(z=>hasFac(getD(p,s.k,z))))); if(!items.length)return;
+      fs.mergeCells(fr,1,fr,FNC); let cr=fs.getCell(fr,1); cr.value=L.cat[cat]; cr.font={name:AR,bold:true,size:9,color:{argb:C.gray}}; cr.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.cat}}; fr++;
+      items.forEach(p=>{
+        let a=fs.getCell(fr,1); a.value=L.cat[cat]; a.font={name:AR,size:9,color:{argb:C.gray}}; a.border=bd;
+        let b=fs.getCell(fr,2); b.value=p.name+(p.short?' ('+p.short+')':''); b.font={name:AR,size:10,bold:true,color:{argb:p.hell?C.hellText:C.ink}}; b.border=bd;
+        if(p.hell){a.fill=b.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.hellFill}};}
+        let cc2=3; STATIONS.forEach(s=>{ ZONES.forEach(z=>{ const d=getD(p,s.k,z); let cell=fs.getCell(fr,cc2); if(hasFac(d))cell.value=facOf(d); cell.font={name:AR,size:9,color:{argb:C.ink}}; cell.alignment={horizontal:'center'}; cell.border=bd; if(p.hell)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.hellFill}}; cc2++; }); });
+        fr++;
+      }); });
+    fs.views=[{state:'frozen',ySplit:5,xSplit:2}];
+  }
   const buf=await wb.xlsx.writeBuffer();
   download(L.csvName+'-'+today()+'.xlsx', buf, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 }
