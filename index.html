@@ -132,8 +132,8 @@
   .u{color:var(--ink-3);cursor:help;border-bottom:1px dotted var(--ink-3)}
   .fac{font-size:10px;font-weight:600;color:var(--ink-3);white-space:nowrap;margin-top:1px}
   .fac small{font-weight:400;opacity:.8}
-  .facrow{display:flex;gap:3px;margin-top:3px}
-  .pin.fac-in{width:46px;margin-top:0}
+  .facrow{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;justify-content:flex-end}
+  .pin.fac-in{width:40px;margin-top:0;padding:4px 5px}
   .pin{width:72px;padding:5px 7px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
   .pin::placeholder{color:var(--ink-3)}
   .pin.promo-in{width:66px;margin-top:4px;color:var(--promo)}
@@ -383,7 +383,7 @@ const I = {
     langBtn:'<b>RO</b> · EN',
     resetConfirm:'Ștergi toate prețurile introduse (oraș + autostradă) și revii la datele inițiale?',
     importErr:'Fișier invalid. Folosește un backup .json exportat din acest dashboard.',
-    csvName:'preturi-hell', pricePh:'preț', promoPh:'promo', facCls:'cls', facAr:'arome', facLbl:'Facinguri',
+    csvName:'preturi-hell', pricePh:'preț', promoPh:'promo', facCls:'cls', facAr:'arome', facList:'listate', facLbl:'Facinguri',
     thProduct:'Produs', catHead:'Categorie',
     notesTitleCmp:'Observații — comparație oraș ↔ autostradă (auto)', notesTitleCity:'Observații — oraș (auto)', notesTitleHw:'Observații — autostradă (auto)'
   },
@@ -431,7 +431,7 @@ const I = {
     langBtn:'RO · <b>EN</b>',
     resetConfirm:'Clear all entered prices (city + highway) and reset to the initial data?',
     importErr:'Invalid file. Use a .json backup exported from this dashboard.',
-    csvName:'hell-prices', pricePh:'price', promoPh:'promo', facCls:'cls', facAr:'flavors', facLbl:'Facings',
+    csvName:'hell-prices', pricePh:'price', promoPh:'promo', facCls:'cls', facAr:'flavors', facList:'listed', facLbl:'Facings',
     thProduct:'Product', catHead:'Category',
     notesTitleCmp:'Notes — city ↔ highway comparison (auto)', notesTitleCity:'Notes — city (auto)', notesTitleHw:'Notes — highway (auto)'
   },
@@ -479,7 +479,7 @@ const I = {
     langBtn:'',
     resetConfirm:'Törlöd az összes bevitt árat (város + autópálya), és visszaállítod a kiindulási adatokat?',
     importErr:'Érvénytelen fájl. Használj egy ebből az irányítópultból exportált .json mentést.',
-    csvName:'hell-arak', pricePh:'ár', promoPh:'akció', facCls:'klassz', facAr:'ízek', facLbl:'Facing',
+    csvName:'hell-arak', pricePh:'ár', promoPh:'akció', facCls:'klassz', facAr:'ízek', facList:'listázott', facLbl:'Facing',
     thProduct:'Termék', catHead:'Kategória',
     notesTitleCmp:'Megjegyzések — város ↔ autópálya összehasonlítás (auto)', notesTitleCity:'Megjegyzések — város (auto)', notesTitleHw:'Megjegyzések — autópálya (auto)'
   }
@@ -582,10 +582,10 @@ function renderTable(){
       h+=`<tr class="${p.hell?'hell':''}"><td><span class="pname">${core}${fmt?`<span class="fmt">${fmt}</span>`:''}</span></td>`;
       STATIONS.forEach(s=>{
         const d=getD(p,s.k,zone);
-        if(editMode){ const pv=d&&typeof d.p==='number'?d.p:'', pr=d&&typeof d.promo==='number'?d.promo:'', fcv=d&&typeof d.fc==='number'?d.fc:'', fav=d&&typeof d.fa==='number'?d.fa:'';
-          h+=`<td><span class="cell"><input class="pin" inputmode="decimal" data-pi="${i}" data-sk="${s.k}" data-fld="p" value="${pv}" placeholder="${L.pricePh}"><input class="pin promo-in" inputmode="decimal" data-pi="${i}" data-sk="${s.k}" data-fld="promo" value="${pr}" placeholder="${L.promoPh}"><span class="facrow"><input class="pin fac-in" inputmode="numeric" data-pi="${i}" data-sk="${s.k}" data-fld="fc" value="${fcv}" placeholder="${L.facCls}" title="facing clasic"><input class="pin fac-in" inputmode="numeric" data-pi="${i}" data-sk="${s.k}" data-fld="fa" value="${fav}" placeholder="${L.facAr}" title="facing arome"></span></span></td>`; return; }
-        const fc=d&&typeof d.fc==='number'?d.fc:null, fa=d&&typeof d.fa==='number'?d.fa:null, hasFac=fc!=null||fa!=null;
-        const facBadge=hasFac?`<span class="fac" title="${L.facLbl}: ${(fc||0)} ${L.facCls} + ${(fa||0)} ${L.facAr}">▦ ${(fc||0)+(fa||0)} <small>(${fc||0}+${fa||0})</small></span>`:'';
+        if(editMode){ const pv=d&&typeof d.p==='number'?d.p:'', pr=d&&typeof d.promo==='number'?d.promo:'', fcv=d&&typeof d.fc==='number'?d.fc:'', fav=d&&typeof d.fa==='number'?d.fa:'', lav=d&&typeof d.la==='number'?d.la:'';
+          h+=`<td><span class="cell"><input class="pin" inputmode="decimal" data-pi="${i}" data-sk="${s.k}" data-fld="p" value="${pv}" placeholder="${L.pricePh}"><input class="pin promo-in" inputmode="decimal" data-pi="${i}" data-sk="${s.k}" data-fld="promo" value="${pr}" placeholder="${L.promoPh}"><span class="facrow"><input class="pin fac-in" inputmode="numeric" data-pi="${i}" data-sk="${s.k}" data-fld="la" value="${lav}" placeholder="${L.facList}" title="${L.facLbl} - articole listate"><input class="pin fac-in" inputmode="numeric" data-pi="${i}" data-sk="${s.k}" data-fld="fc" value="${fcv}" placeholder="${L.facCls}" title="facing clasic"><input class="pin fac-in" inputmode="numeric" data-pi="${i}" data-sk="${s.k}" data-fld="fa" value="${fav}" placeholder="${L.facAr}" title="facing arome"></span></span></td>`; return; }
+        const fc=d&&typeof d.fc==='number'?d.fc:null, fa=d&&typeof d.fa==='number'?d.fa:null, la=d&&typeof d.la==='number'?d.la:null, hasFac=fc!=null||fa!=null||la!=null;
+        const facBadge=hasFac?`<span class="fac" title="${L.facList}: ${la!=null?la:'—'} · ${(fc||0)} ${L.facCls} + ${(fa||0)} ${L.facAr}">${la!=null?`${la} art · `:''}▦ ${(fc||0)+(fa||0)} <small>(${fc||0}+${fa||0})</small></span>`:'';
         if(!d||typeof d.p!=='number'){h+=`<td>${hasFac?`<span class="cell">${facBadge}</span>`:'<span class="na">—</span>'}</td>`;return;}
         const bg=heatColor(d.p,mn,mx); const txt=(typeof d.alt==='number')?`${fmtNum(d.p)} / ${fmtNum(d.alt)}`:fmtNum(d.p);
         let inner=`<span class="heat" style="background:${bg}">${txt}</span>`; if(typeof d.promo==='number')inner+=`<span class="promo">promo ${fmtNum(d.promo)}</span>`;
@@ -719,7 +719,7 @@ function exportCSV(){
   const g=['','','']; STATIONS.forEach(s=>{g.push(s.name,'','');}); g.push('');
   const h=[L.catHead,L.thProduct,fmtHead]; STATIONS.forEach(()=>h.push(L.zoneCity,L.zoneHw,'Δ')); h.push('Promo / Note');
   const lines=[esc(L.h1), esc(new Date().toLocaleDateString(L.locale)), '', g.map(esc).join(sep), h.map(esc).join(sep)];
-  const facStr=d=>(typeof d.fc==='number'||typeof d.fa==='number')?(((d.fc||0)+(d.fa||0))+' ('+(d.fc||0)+'+'+(d.fa||0)+')'):null;
+  const facStr=d=>(typeof d.fc==='number'||typeof d.fa==='number'||typeof d.la==='number')?((typeof d.la==='number'?d.la+' art · ':'')+((d.fc||0)+(d.fa||0))+' ('+(d.fc||0)+'+'+(d.fa||0)+')'):null;
   data.forEach(p=>{ const row=[L.cat[p.cat], p.name+(p.short?' ('+p.short+')':''), p.fmt[LANG]||'']; const notes=[]; const facs=[];
     STATIONS.forEach(s=>{ const c=getD(p,s.k,'city'), hh=getD(p,s.k,'hw'); const cp=c&&typeof c.p==='number'?c.p:null, hp=hh&&typeof hh.p==='number'?hh.p:null;
       row.push(cp!=null?(typeof c.alt==='number'?num(cp)+' / '+num(c.alt):num(cp)):''); row.push(hp!=null?num(hp):''); row.push((cp!=null&&hp!=null)?num(hp-cp):'');
@@ -770,7 +770,7 @@ async function exportXLSX(){
       let cC=ws.getCell(r,3); cC.value=p.fmt[LANG]||''; cC.font={name:AR,size:8,color:{argb:C.gray}};
       for(let k=1;k<=3;k++){let cell=ws.getCell(r,k); cell.border=bd; if(p.hell)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.hellFill}};}
       const notes=[], facs=[]; col=4;
-      const facStr=d=>(typeof d.fc==='number'||typeof d.fa==='number')?(((d.fc||0)+(d.fa||0))+' ('+(d.fc||0)+'+'+(d.fa||0)+')'):null;
+      const facStr=d=>(typeof d.fc==='number'||typeof d.fa==='number'||typeof d.la==='number')?((typeof d.la==='number'?d.la+' art · ':'')+((d.fc||0)+(d.fa||0))+' ('+(d.fc||0)+'+'+(d.fa||0)+')'):null;
       STATIONS.forEach(s=>{
         const cd=getD(p,s.k,'city'), hd=getD(p,s.k,'hw'); const cp=cd&&typeof cd.p==='number'?cd.p:null, hp=hd&&typeof hd.p==='number'?hd.p:null;
         if(cd&&facStr(cd))facs.push(s.name+' '+facStr(cd)); if(hd&&facStr(hd))facs.push(s.name+' ('+L.zoneHw+') '+facStr(hd));
@@ -788,26 +788,27 @@ async function exportXLSX(){
   ws.mergeCells(r,1,r,NC); let nh=ws.getCell(r,1); nh.value=document.getElementById('notesH3').textContent; nh.font={name:AR,bold:true,size:11,color:{argb:C.ink}}; r++;
   [...document.querySelectorAll('#noteslist li')].forEach(li=>{ ws.mergeCells(r,1,r,NC); let cc=ws.getCell(r,1); cc.value='• '+li.textContent; cc.font={name:AR,size:9,color:{argb:C.ink}}; cc.alignment={wrapText:true}; ws.getRow(r).height=16; r++; });
   ws.views=[{state:'frozen',ySplit:SR,xSplit:3}];
-  const hasFac=d=>d&&(typeof d.fc==='number'||typeof d.fa==='number');
+  const hasFac=d=>d&&(typeof d.fc==='number'||typeof d.fa==='number'||typeof d.la==='number');
   const facOf=d=>((d.fc||0)+(d.fa||0))+' ('+(d.fc||0)+'+'+(d.fa||0)+')';
   const anyFac=data.some(p=>STATIONS.some(s=>ZONES.some(z=>hasFac(getD(p,s.k,z)))));
   if(anyFac){
     const fs=wb.addWorksheet(L.facLbl,{views:[{showGridLines:false}]});
-    const H = LANG==='hu'?['Kategória','Termék','Állomás','Zóna','Klasszikus felületek','Ízek felületek','Összes felület']
-            : LANG==='en'?['Category','Product','Station','Zone','Classic facings','Flavor facings','Total facings']
-            : ['Categorie','Produs','Stație','Zonă','Fețe clasic','Fețe arome','Total fețe'];
-    [13,24,13,12,14,13,12].forEach((w,i)=>fs.getColumn(i+1).width=w);
-    fs.mergeCells(1,1,1,7); let ft=fs.getCell(1,1); ft.value=L.facLbl+' — '+L.h1; ft.font={name:AR,bold:true,size:14,color:{argb:C.ink}};
-    fs.mergeCells(2,1,2,7); let fsub=fs.getCell(2,1); fsub.value=(LANG==='ro'?'Număr fețe (doze) expuse la raft, pe fiecare stație și zonă':(LANG==='hu'?'Polcon kihelyezett felületek száma állomásonként és zónánként':'Number of shelf facings per station and zone')); fsub.font={name:AR,size:9,color:{argb:C.gray}};
+    const H = LANG==='hu'?['Kategória','Termék','Állomás','Zóna','Listázott cikkek','Klasszikus felületek','Ízek felületek','Összes felület']
+            : LANG==='en'?['Category','Product','Station','Zone','Listed articles','Classic facings','Flavor facings','Total facings']
+            : ['Categorie','Produs','Stație','Zonă','Articole listate','Fețe clasic','Fețe arome','Total fețe'];
+    const NCF=8;
+    [13,24,13,12,14,13,12,12].forEach((w,i)=>fs.getColumn(i+1).width=w);
+    fs.mergeCells(1,1,1,NCF); let ft=fs.getCell(1,1); ft.value=L.facLbl+' — '+L.h1; ft.font={name:AR,bold:true,size:14,color:{argb:C.ink}};
+    fs.mergeCells(2,1,2,NCF); let fsub=fs.getCell(2,1); fsub.value=(LANG==='ro'?'Articole listate și fețe (doze) expuse la raft, pe fiecare stație și zonă':(LANG==='hu'?'Listázott cikkek és polcfelületek állomásonként és zónánként':'Listed articles and shelf facings per station and zone')); fsub.font={name:AR,size:9,color:{argb:C.gray}};
     H.forEach((h,i)=>{let cell=fs.getCell(4,i+1); cell.value=h; cell.font={name:AR,bold:true,size:9,color:{argb:C.white}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.headDark}}; cell.alignment={vertical:'middle',wrapText:true,horizontal:i<4?'left':'center'}; cell.border=bd;});
     const zlab={city:L.zoneCity,hw:L.zoneHw};
     let fr=5;
     ['energy','coffee','csd'].forEach(cat=>{ data.filter(p=>p.cat===cat).forEach(p=>{
       STATIONS.forEach(s=>{ ZONES.forEach(z=>{ const d=getD(p,s.k,z); if(!hasFac(d))return;
-        const cls=d.fc||0, ar=d.fa||0;
-        [L.cat[cat], p.name+(p.short?' ('+p.short+')':''), s.name, zlab[z], cls, ar, cls+ar].forEach((v,i)=>{
+        const cls=d.fc||0, ar=d.fa||0, lst=(typeof d.la==='number')?d.la:'';
+        [L.cat[cat], p.name+(p.short?' ('+p.short+')':''), s.name, zlab[z], lst, cls, ar, cls+ar].forEach((v,i)=>{
           let cell=fs.getCell(fr,i+1); cell.value=v; cell.border=bd;
-          cell.font={name:AR,size:9,bold:(i===1||i===6),color:{argb:p.hell?C.hellText:C.ink}};
+          cell.font={name:AR,size:9,bold:(i===1||i===7),color:{argb:p.hell?C.hellText:C.ink}};
           cell.alignment={horizontal:i<4?'left':'center'};
           if(p.hell)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.hellFill}};
         });
@@ -815,7 +816,7 @@ async function exportXLSX(){
       }); });
     }); });
     fs.views=[{state:'frozen',ySplit:4,xSplit:2}];
-    if(fr>5)fs.autoFilter={from:{row:4,column:1},to:{row:4,column:7}};
+    if(fr>5)fs.autoFilter={from:{row:4,column:1},to:{row:4,column:NCF}};
   }
   const buf=await wb.xlsx.writeBuffer();
   download(L.csvName+'-'+today()+'.xlsx', buf, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -892,7 +893,7 @@ async function generatePDF(modes){
         const head=[[X(L.thProduct),X(fmtHead)].concat(STATIONS.map(s=>X(s.name)))];
         const body=items.map(p=>{
           const row=[{content:X(p.name+(p.short?' '+p.short:'')),styles:{halign:'left',fontStyle:'bold'}},{content:X(p.fmt[LANG]||''),styles:{textColor:gray,fontSize:7,halign:'left'}}];
-          STATIONS.forEach(s=>{const dd=getD(p,s.k,zone); let t='-'; if(dd&&typeof dd.p==='number'){t=(typeof dd.alt==='number')?fmtNum(dd.p)+' / '+fmtNum(dd.alt):fmtNum(dd.p); if(typeof dd.promo==='number')t+='\npromo '+fmtNum(dd.promo);} if(dd&&(typeof dd.fc==='number'||typeof dd.fa==='number')){if(t==='-')t=''; t+=(t?'\n':'')+'['+((dd.fc||0)+(dd.fa||0))+': '+(dd.fc||0)+'+'+(dd.fa||0)+']';} row.push({content:t,styles:{halign:'right'}});});
+          STATIONS.forEach(s=>{const dd=getD(p,s.k,zone); let t='-'; if(dd&&typeof dd.p==='number'){t=(typeof dd.alt==='number')?fmtNum(dd.p)+' / '+fmtNum(dd.alt):fmtNum(dd.p); if(typeof dd.promo==='number')t+='\npromo '+fmtNum(dd.promo);} if(dd&&(typeof dd.fc==='number'||typeof dd.fa==='number'||typeof dd.la==='number')){if(t==='-')t=''; t+=(t?'\n':'')+(typeof dd.la==='number'?dd.la+'art ':'')+'['+((dd.fc||0)+(dd.fa||0))+': '+(dd.fc||0)+'+'+(dd.fa||0)+']';} row.push({content:t,styles:{halign:'right'}});});
           if(p.hell) row.forEach(c=>{c.styles=Object.assign({fillColor:pinkFill},c.styles||{});});
           return row;});
         doc.autoTable({head,body,startY:y+5,margin:{left:M,right:M},theme:'grid',styles:{font:FONT,fontSize:(multi?7:8),cellPadding:(multi?2:3),lineColor:[220,220,220],lineWidth:0.5,valign:'middle'},headStyles:HS,columnStyles:{0:{halign:'left'},1:{halign:'left'}}});
