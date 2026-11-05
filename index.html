@@ -16,7 +16,7 @@
     --heat-0:#f2f0ed;--heat-1:#dcd8d2;--heat-2:#c2bdb5;--heat-3:#a6a099;--heat-ink:#1c1815;
     --promo:#0f7a5a;--promo-soft:#e2f2eb;--warn:#c2521f;
     --shadow:0 1px 2px rgba(28,24,21,.05),0 6px 20px rgba(28,24,21,.06);
-    --st-omv:#2f5bc4;--st-rom:#7a4fb5;--st-luk:#c77a16;--st-mol:#0f8b7e;--st-pet:#c9772a;
+    --st-omv:#2f5bc4;--st-rom:#7a4fb5;--st-luk:#c77a16;--st-mol:#0f8b7e;--st-pet:#c9772a;--st-soc:#2f8f4e;
     --f-disp:'Segoe UI Variable Display','Segoe UI Semibold',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
     --f-body:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
   }
@@ -29,7 +29,7 @@
       --heat-0:#242019;--heat-1:#332e27;--heat-2:#443e35;--heat-3:#565046;--heat-ink:#f4efe8;
       --promo:#43c79a;--promo-soft:#17332a;--warn:#f0925a;
       --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
-      --st-omv:#6f97ee;--st-rom:#b18ce0;--st-luk:#e2a54e;--st-mol:#3fbfb0;--st-pet:#e59a4e;
+      --st-omv:#6f97ee;--st-rom:#b18ce0;--st-luk:#e2a54e;--st-mol:#3fbfb0;--st-pet:#e59a4e;--st-soc:#52b172;
     }
   }
   :root[data-theme="dark"]{
@@ -40,7 +40,7 @@
     --heat-0:#242019;--heat-1:#332e27;--heat-2:#443e35;--heat-3:#565046;--heat-ink:#f4efe8;
     --promo:#43c79a;--promo-soft:#17332a;--warn:#f0925a;
     --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
-    --st-omv:#6f97ee;--st-rom:#b18ce0;--st-luk:#e2a54e;--st-mol:#3fbfb0;--st-pet:#e59a4e;
+    --st-omv:#6f97ee;--st-rom:#b18ce0;--st-luk:#e2a54e;--st-mol:#3fbfb0;--st-pet:#e59a4e;--st-soc:#52b172;
   }
 
   *{box-sizing:border-box}
@@ -326,6 +326,7 @@ const STATIONS = [
   {k:'luk', name:'Lukoil',    v:'--st-luk'},
   {k:'mol', name:'MOL',       v:'--st-mol'},
   {k:'pet', name:'Petrom',    v:'--st-pet'},
+  {k:'soc', name:'Socar',     v:'--st-soc'},
 ];
 const ZONES=['city','hw'];
 
@@ -773,7 +774,7 @@ async function exportXLSX(){
   const NC=3+STATIONS.length*3+1;
   const C={hellText:'FFA81421',hellFill:'FFFBE9EA',promo:'FF0F7A5A',headDark:'FF2B2620',sub:'FFEFE9E1',cat:'FFF0EAE1',white:'FFFFFFFF',ink:'FF1C1815',gray:'FF8B8177',line:'FFD8D0C6',kpiBg:'FFF7F5F2'};
   const heat=['FFF2F0ED','FFDCD8D2','FFC2BDB5','FFA6A099'];
-  const stC={omv:'FF2F5BC4',rom:'FF7A4FB5',luk:'FFC77A16',mol:'FF0F8B7E',pet:'FFC9772A'};
+  const stC={omv:'FF2F5BC4',rom:'FF7A4FB5',luk:'FFC77A16',mol:'FF0F8B7E',pet:'FFC9772A',soc:'FF2F8F4E'};
   const thin={style:'thin',color:{argb:C.line}}, bd={top:thin,left:thin,bottom:thin,right:thin};
   const AR='Arial';
   ws.getColumn(1).width=13; ws.getColumn(2).width=22; ws.getColumn(3).width=17;
