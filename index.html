@@ -134,6 +134,15 @@
   .fac small{font-weight:400;opacity:.8}
   .facrow{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;justify-content:flex-end}
   .pin.fac-in{width:40px;margin-top:0;padding:4px 5px}
+  .varbtn{margin-top:4px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--ink-2);border-radius:6px;padding:4px 8px;font:inherit;font-size:11px;cursor:pointer;white-space:nowrap}
+  .varbtn:hover{border-color:var(--hell);color:var(--hell)}
+  .varbtn.has{border-color:var(--hell);color:var(--hell-ink);font-weight:600}
+  .varrow{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+  .varrow .vn{flex:1 1 auto;padding:7px 9px;border:1px solid var(--line-strong);border-radius:7px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px}
+  .varrow .vf{width:64px;padding:7px 9px;border:1px solid var(--line-strong);border-radius:7px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;text-align:right}
+  .varrow .vdel{border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:15px;padding:2px 5px}
+  .varrow .vdel:hover{color:var(--hell)}
+  .modal-card #varrows{max-height:46vh;overflow:auto;margin-bottom:6px}
   .pin{width:72px;padding:5px 7px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
   .pin::placeholder{color:var(--ink-3)}
   .pin.promo-in{width:66px;margin-top:4px;color:var(--promo)}
@@ -383,7 +392,7 @@ const I = {
     langBtn:'<b>RO</b> · EN',
     resetConfirm:'Ștergi toate prețurile introduse (oraș + autostradă) și revii la datele inițiale?',
     importErr:'Fișier invalid. Folosește un backup .json exportat din acest dashboard.',
-    csvName:'preturi-hell', pricePh:'preț', promoPh:'promo', facCls:'cls', facAr:'arome', facList:'listate', facLbl:'Facinguri',
+    csvName:'preturi-hell', pricePh:'preț', promoPh:'promo', facCls:'cls', facAr:'arome', facList:'listate', facLbl:'Facinguri', varsBtn:'Variante', varTitle:'Variante (arome)', varName:'aromă (ex. Clasic)', varFac:'fețe', varAdd:'+ adaugă variantă', varSave:'Salvează', varClassic:'Clasic', varFlavors:'Arome', varColVar:'Variantă', varColFac:'Fețe',
     thProduct:'Produs', catHead:'Categorie',
     notesTitleCmp:'Observații — comparație oraș ↔ autostradă (auto)', notesTitleCity:'Observații — oraș (auto)', notesTitleHw:'Observații — autostradă (auto)'
   },
@@ -431,7 +440,7 @@ const I = {
     langBtn:'RO · <b>EN</b>',
     resetConfirm:'Clear all entered prices (city + highway) and reset to the initial data?',
     importErr:'Invalid file. Use a .json backup exported from this dashboard.',
-    csvName:'hell-prices', pricePh:'price', promoPh:'promo', facCls:'cls', facAr:'flavors', facList:'listed', facLbl:'Facings',
+    csvName:'hell-prices', pricePh:'price', promoPh:'promo', facCls:'cls', facAr:'flavors', facList:'listed', facLbl:'Facings', varsBtn:'Variants', varTitle:'Variants (flavors)', varName:'flavor (e.g. Classic)', varFac:'facings', varAdd:'+ add variant', varSave:'Save', varClassic:'Classic', varFlavors:'Flavors', varColVar:'Variant', varColFac:'Facings',
     thProduct:'Product', catHead:'Category',
     notesTitleCmp:'Notes — city ↔ highway comparison (auto)', notesTitleCity:'Notes — city (auto)', notesTitleHw:'Notes — highway (auto)'
   },
@@ -479,7 +488,7 @@ const I = {
     langBtn:'',
     resetConfirm:'Törlöd az összes bevitt árat (város + autópálya), és visszaállítod a kiindulási adatokat?',
     importErr:'Érvénytelen fájl. Használj egy ebből az irányítópultból exportált .json mentést.',
-    csvName:'hell-arak', pricePh:'ár', promoPh:'akció', facCls:'klassz', facAr:'ízek', facList:'listázott', facLbl:'Facing',
+    csvName:'hell-arak', pricePh:'ár', promoPh:'akció', facCls:'klassz', facAr:'ízek', facList:'listázott', facLbl:'Facing', varsBtn:'Változatok', varTitle:'Változatok (ízek)', varName:'íz (pl. Klasszikus)', varFac:'felületek', varAdd:'+ változat hozzáadása', varSave:'Mentés', varClassic:'Klasszikus', varFlavors:'Ízek', varColVar:'Változat', varColFac:'Felületek',
     thProduct:'Termék', catHead:'Kategória',
     notesTitleCmp:'Megjegyzések — város ↔ autópálya összehasonlítás (auto)', notesTitleCity:'Megjegyzések — város (auto)', notesTitleHw:'Megjegyzések — autópálya (auto)'
   }
@@ -525,6 +534,8 @@ const T=()=>I[LANG];
 const fmtNum=(n)=>Number(n).toLocaleString(I[LANG].locale,{minimumFractionDigits:2,maximumFractionDigits:2});
 const parseNum=(s)=>{ if(s==null)return null; s=String(s).trim().replace(',','.'); if(s==='')return null; const v=parseFloat(s); return isFinite(v)?v:null; };
 const getD=(p,sk,zone)=> p.prices[sk]&&p.prices[sk][zone];
+function facVars(d){ if(!d)return []; if(Array.isArray(d.v))return d.v.filter(x=>x&&x.n); const out=[]; if(typeof d.fc==='number')out.push({n:I[LANG].varClassic,f:d.fc}); if(typeof d.fa==='number')out.push({n:I[LANG].varFlavors,f:d.fa}); return out; }
+function facTotal(d){ return facVars(d).reduce((a,b)=>a+(+b.f||0),0); }
 function avgOf(p,zone){ const vals=STATIONS.map(s=>{const d=getD(p,s.k,zone); return d&&typeof d.p==='number'?d.p:null;}).filter(v=>v!=null); return vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : null; }
 function comparePairs(){ const out=[]; data.forEach(p=>STATIONS.forEach(s=>{ const c=getD(p,s.k,'city'),h=getD(p,s.k,'hw'); if(c&&h&&typeof c.p==='number'&&typeof h.p==='number'&&c.p>0) out.push({name:(p.short||p.name),station:s.name,d:h.p-c.p,pct:(h.p-c.p)/c.p*100,hell:!!p.hell}); })); return out; }
 
@@ -582,10 +593,10 @@ function renderTable(){
       h+=`<tr class="${p.hell?'hell':''}"><td><span class="pname">${core}${fmt?`<span class="fmt">${fmt}</span>`:''}</span></td>`;
       STATIONS.forEach(s=>{
         const d=getD(p,s.k,zone);
-        if(editMode){ const pv=d&&typeof d.p==='number'?d.p:'', pr=d&&typeof d.promo==='number'?d.promo:'', fcv=d&&typeof d.fc==='number'?d.fc:'', fav=d&&typeof d.fa==='number'?d.fa:'', lav=d&&typeof d.la==='number'?d.la:'';
-          h+=`<td><span class="cell"><input class="pin" inputmode="decimal" data-pi="${i}" data-sk="${s.k}" data-fld="p" value="${pv}" placeholder="${L.pricePh}"><input class="pin promo-in" inputmode="decimal" data-pi="${i}" data-sk="${s.k}" data-fld="promo" value="${pr}" placeholder="${L.promoPh}"><span class="facrow"><input class="pin fac-in" inputmode="numeric" data-pi="${i}" data-sk="${s.k}" data-fld="la" value="${lav}" placeholder="${L.facList}" title="${L.facLbl} - articole listate"><input class="pin fac-in" inputmode="numeric" data-pi="${i}" data-sk="${s.k}" data-fld="fc" value="${fcv}" placeholder="${L.facCls}" title="facing clasic"><input class="pin fac-in" inputmode="numeric" data-pi="${i}" data-sk="${s.k}" data-fld="fa" value="${fav}" placeholder="${L.facAr}" title="facing arome"></span></span></td>`; return; }
-        const fc=d&&typeof d.fc==='number'?d.fc:null, fa=d&&typeof d.fa==='number'?d.fa:null, la=d&&typeof d.la==='number'?d.la:null, hasFac=fc!=null||fa!=null||la!=null;
-        const facBadge=hasFac?`<span class="fac" title="${L.facList}: ${la!=null?la:'—'} · ${(fc||0)} ${L.facCls} + ${(fa||0)} ${L.facAr}">${la!=null?`${la} art · `:''}▦ ${(fc||0)+(fa||0)} <small>(${fc||0}+${fa||0})</small></span>`:'';
+        if(editMode){ const pv=d&&typeof d.p==='number'?d.p:'', pr=d&&typeof d.promo==='number'?d.promo:''; const nv=facVars(d).length;
+          h+=`<td><span class="cell"><input class="pin" inputmode="decimal" data-pi="${i}" data-sk="${s.k}" data-fld="p" value="${pv}" placeholder="${L.pricePh}"><input class="pin promo-in" inputmode="decimal" data-pi="${i}" data-sk="${s.k}" data-fld="promo" value="${pr}" placeholder="${L.promoPh}"><button type="button" class="varbtn${nv?' has':''}" data-pi="${i}" data-sk="${s.k}">▦ ${L.varsBtn}${nv?` (${nv})`:''}</button></span></td>`; return; }
+        const vlist=facVars(d), total=facTotal(d), listed=vlist.length, hasFac=listed>0;
+        const facBadge=hasFac?`<span class="fac" title="${vlist.map(x=>x.n+': '+x.f).join(' · ')}">${listed} art · ▦ ${total}</span>`:'';
         if(!d||typeof d.p!=='number'){h+=`<td>${hasFac?`<span class="cell">${facBadge}</span>`:'<span class="na">—</span>'}</td>`;return;}
         const bg=heatColor(d.p,mn,mx); const txt=(typeof d.alt==='number')?`${fmtNum(d.p)} / ${fmtNum(d.alt)}`:fmtNum(d.p);
         let inner=`<span class="heat" style="background:${bg}">${txt}</span>`; if(typeof d.promo==='number')inner+=`<span class="promo">promo ${fmtNum(d.promo)}</span>`;
@@ -699,6 +710,32 @@ document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.cl
 langbtn.addEventListener('click',()=>{LANG=LANGS[(LANGS.indexOf(LANG)+1)%LANGS.length]; try{localStorage.setItem('pr_lang',LANG);}catch(e){} renderAll(false); if(typeof fillPhotoStations==='function'){fillPhotoStations();renderPhotos();}});
 editbtn.addEventListener('click',()=>{editMode=!editMode; applyStatic(); renderTable(); if(!editMode){renderKPIs();renderChart(false);renderNotes();}});
 
+function openVariants(pi,sk,zone){
+  const L=T(), p=data[pi], prices=p.prices, cur=(prices[sk]&&prices[sk][zone])||{};
+  let vars=facVars(cur).map(x=>({n:x.n,f:x.f})); if(!vars.length)vars=[{n:'',f:''}];
+  const st=STATIONS.find(x=>x.k===sk), zl=zone==='hw'?L.zoneHw:L.zoneCity;
+  const esc=s=>(''+(s==null?'':s)).replace(/"/g,'&quot;');
+  const rowHTML=(v,idx)=>`<div class="varrow"><input class="vn" data-i="${idx}" value="${esc(v.n)}" placeholder="${L.varName}"><input class="vf" data-i="${idx}" inputmode="numeric" value="${v.f===''||v.f==null?'':v.f}" placeholder="${L.varFac}"><button type="button" class="vdel" data-i="${idx}" title="×">✕</button></div>`;
+  const ov=document.createElement('div'); ov.className='modal';
+  ov.innerHTML=`<div class="modal-card"><h3>${L.varTitle}: ${p.name}${p.short?' ('+p.short+')':''} · ${st?st.name:sk} · ${zl}</h3><div id="varrows"></div><button type="button" class="btn" id="varadd" style="margin:4px 0 2px">${L.varAdd}</button><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button type="button" class="btn on" id="varsave">${L.varSave}</button><button type="button" class="btn close">${L.installClose}</button></div></div>`;
+  const draw=()=>{ov.querySelector('#varrows').innerHTML=vars.map(rowHTML).join('');};
+  document.body.appendChild(ov); draw();
+  ov.addEventListener('input',e=>{const t=e.target; if(t.classList.contains('vn'))vars[+t.dataset.i].n=t.value; else if(t.classList.contains('vf'))vars[+t.dataset.i].f=t.value;});
+  ov.addEventListener('click',e=>{
+    if(e.target.id==='varadd'){vars.push({n:'',f:''}); draw(); return;}
+    const del=e.target.closest('.vdel'); if(del){vars.splice(+del.dataset.i,1); if(!vars.length)vars=[{n:'',f:''}]; draw(); return;}
+    if(e.target.id==='varsave'){
+      const clean=vars.map(v=>({n:(v.n||'').trim(), f:parseNum(v.f)})).filter(v=>v.n&&v.f!=null);
+      if(!prices[sk])prices[sk]={}; if(!prices[sk][zone])prices[sk][zone]={}; const c=prices[sk][zone];
+      if(clean.length)c.v=clean; else delete c.v; delete c.fc; delete c.fa; delete c.la;
+      if(!Object.keys(c).length){delete prices[sk][zone]; if(!Object.keys(prices[sk]).length)delete prices[sk];}
+      saveData(); ov.remove(); renderAll(false); return;
+    }
+    if(e.target.closest('.close')||e.target===ov) ov.remove();
+  });
+}
+document.getElementById('tables').addEventListener('click',e=>{const b=e.target.closest('.varbtn'); if(b)openVariants(+b.dataset.pi,b.dataset.sk,viewMode);});
+
 document.getElementById('tables').addEventListener('input',e=>{
   const inp=e.target.closest('input.pin'); if(!inp)return;
   const pi=+inp.dataset.pi, sk=inp.dataset.sk, fld=inp.dataset.fld, zone=viewMode, val=parseNum(inp.value);
@@ -719,7 +756,7 @@ function exportCSV(){
   const g=['','','']; STATIONS.forEach(s=>{g.push(s.name,'','');}); g.push('');
   const h=[L.catHead,L.thProduct,fmtHead]; STATIONS.forEach(()=>h.push(L.zoneCity,L.zoneHw,'Δ')); h.push('Promo / Note');
   const lines=[esc(L.h1), esc(new Date().toLocaleDateString(L.locale)), '', g.map(esc).join(sep), h.map(esc).join(sep)];
-  const facStr=d=>(typeof d.fc==='number'||typeof d.fa==='number'||typeof d.la==='number')?((typeof d.la==='number'?d.la+' art · ':'')+((d.fc||0)+(d.fa||0))+' ('+(d.fc||0)+'+'+(d.fa||0)+')'):null;
+  const facStr=d=>{const v=facVars(d); return v.length?(v.length+' art · '+v.reduce((a,b)=>a+(+b.f||0),0)+' '+(LANG==='hu'?'felület':(LANG==='en'?'facings':'fețe'))+' ['+v.map(x=>x.n+' '+x.f).join(', ')+']'):null;};
   data.forEach(p=>{ const row=[L.cat[p.cat], p.name+(p.short?' ('+p.short+')':''), p.fmt[LANG]||'']; const notes=[]; const facs=[];
     STATIONS.forEach(s=>{ const c=getD(p,s.k,'city'), hh=getD(p,s.k,'hw'); const cp=c&&typeof c.p==='number'?c.p:null, hp=hh&&typeof hh.p==='number'?hh.p:null;
       row.push(cp!=null?(typeof c.alt==='number'?num(cp)+' / '+num(c.alt):num(cp)):''); row.push(hp!=null?num(hp):''); row.push((cp!=null&&hp!=null)?num(hp-cp):'');
@@ -770,7 +807,7 @@ async function exportXLSX(){
       let cC=ws.getCell(r,3); cC.value=p.fmt[LANG]||''; cC.font={name:AR,size:8,color:{argb:C.gray}};
       for(let k=1;k<=3;k++){let cell=ws.getCell(r,k); cell.border=bd; if(p.hell)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.hellFill}};}
       const notes=[], facs=[]; col=4;
-      const facStr=d=>(typeof d.fc==='number'||typeof d.fa==='number'||typeof d.la==='number')?((typeof d.la==='number'?d.la+' art · ':'')+((d.fc||0)+(d.fa||0))+' ('+(d.fc||0)+'+'+(d.fa||0)+')'):null;
+      const facStr=d=>{const v=facVars(d); return v.length?(v.length+' art · '+v.reduce((a,b)=>a+(+b.f||0),0)+' '+(LANG==='hu'?'felület':(LANG==='en'?'facings':'fețe'))+' ['+v.map(x=>x.n+' '+x.f).join(', ')+']'):null;};
       STATIONS.forEach(s=>{
         const cd=getD(p,s.k,'city'), hd=getD(p,s.k,'hw'); const cp=cd&&typeof cd.p==='number'?cd.p:null, hp=hd&&typeof hd.p==='number'?hd.p:null;
         if(cd&&facStr(cd))facs.push(s.name+' '+facStr(cd)); if(hd&&facStr(hd))facs.push(s.name+' ('+L.zoneHw+') '+facStr(hd));
@@ -788,30 +825,31 @@ async function exportXLSX(){
   ws.mergeCells(r,1,r,NC); let nh=ws.getCell(r,1); nh.value=document.getElementById('notesH3').textContent; nh.font={name:AR,bold:true,size:11,color:{argb:C.ink}}; r++;
   [...document.querySelectorAll('#noteslist li')].forEach(li=>{ ws.mergeCells(r,1,r,NC); let cc=ws.getCell(r,1); cc.value='• '+li.textContent; cc.font={name:AR,size:9,color:{argb:C.ink}}; cc.alignment={wrapText:true}; ws.getRow(r).height=16; r++; });
   ws.views=[{state:'frozen',ySplit:SR,xSplit:3}];
-  const hasFac=d=>d&&(typeof d.fc==='number'||typeof d.fa==='number'||typeof d.la==='number');
-  const facOf=d=>((d.fc||0)+(d.fa||0))+' ('+(d.fc||0)+'+'+(d.fa||0)+')';
-  const anyFac=data.some(p=>STATIONS.some(s=>ZONES.some(z=>hasFac(getD(p,s.k,z)))));
+  const anyFac=data.some(p=>STATIONS.some(s=>ZONES.some(z=>facVars(getD(p,s.k,z)).length)));
   if(anyFac){
     const fs=wb.addWorksheet(L.facLbl,{views:[{showGridLines:false}]});
-    const H = LANG==='hu'?['Kategória','Termék','Állomás','Zóna','Listázott cikkek','Klasszikus felületek','Ízek felületek','Összes felület']
-            : LANG==='en'?['Category','Product','Station','Zone','Listed articles','Classic facings','Flavor facings','Total facings']
-            : ['Categorie','Produs','Stație','Zonă','Articole listate','Fețe clasic','Fețe arome','Total fețe'];
-    const NCF=8;
-    [13,24,13,12,14,13,12,12].forEach((w,i)=>fs.getColumn(i+1).width=w);
+    const H=[L.catHead,L.thProduct,(LANG==='hu'?'Állomás':(LANG==='en'?'Station':'Stație')),(LANG==='hu'?'Zóna':(LANG==='en'?'Zone':'Zonă')),L.varColVar,L.varColFac];
+    const NCF=6;
+    [13,22,13,12,22,10].forEach((w,i)=>fs.getColumn(i+1).width=w);
     fs.mergeCells(1,1,1,NCF); let ft=fs.getCell(1,1); ft.value=L.facLbl+' — '+L.h1; ft.font={name:AR,bold:true,size:14,color:{argb:C.ink}};
-    fs.mergeCells(2,1,2,NCF); let fsub=fs.getCell(2,1); fsub.value=(LANG==='ro'?'Articole listate și fețe (doze) expuse la raft, pe fiecare stație și zonă':(LANG==='hu'?'Listázott cikkek és polcfelületek állomásonként és zónánként':'Listed articles and shelf facings per station and zone')); fsub.font={name:AR,size:9,color:{argb:C.gray}};
+    fs.mergeCells(2,1,2,NCF); let fsub=fs.getCell(2,1); fsub.value=(LANG==='ro'?'Fețe (doze) pe fiecare variantă/aromă, stație și zonă':(LANG==='hu'?'Felületek változatonként/ízenként, állomásonként és zónánként':'Facings per variant/flavor, station and zone')); fsub.font={name:AR,size:9,color:{argb:C.gray}};
     H.forEach((h,i)=>{let cell=fs.getCell(4,i+1); cell.value=h; cell.font={name:AR,bold:true,size:9,color:{argb:C.white}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.headDark}}; cell.alignment={vertical:'middle',wrapText:true,horizontal:i<4?'left':'center'}; cell.border=bd;});
     const zlab={city:L.zoneCity,hw:L.zoneHw};
     let fr=5;
     ['energy','coffee','csd'].forEach(cat=>{ data.filter(p=>p.cat===cat).forEach(p=>{
-      STATIONS.forEach(s=>{ ZONES.forEach(z=>{ const d=getD(p,s.k,z); if(!hasFac(d))return;
-        const cls=d.fc||0, ar=d.fa||0, lst=(typeof d.la==='number')?d.la:'';
-        [L.cat[cat], p.name+(p.short?' ('+p.short+')':''), s.name, zlab[z], lst, cls, ar, cls+ar].forEach((v,i)=>{
-          let cell=fs.getCell(fr,i+1); cell.value=v; cell.border=bd;
-          cell.font={name:AR,size:9,bold:(i===1||i===7),color:{argb:p.hell?C.hellText:C.ink}};
-          cell.alignment={horizontal:i<4?'left':'center'};
-          if(p.hell)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.hellFill}};
+      STATIONS.forEach(s=>{ ZONES.forEach(z=>{ const vs=facVars(getD(p,s.k,z)); if(!vs.length)return;
+        vs.forEach(vv=>{
+          [L.cat[cat], p.name+(p.short?' ('+p.short+')':''), s.name, zlab[z], vv.n, (+vv.f||0)].forEach((v,i)=>{
+            let cell=fs.getCell(fr,i+1); cell.value=v; cell.border=bd;
+            cell.font={name:AR,size:9,bold:(i===5),color:{argb:p.hell?C.hellText:C.ink}};
+            cell.alignment={horizontal:i<4?'left':'center'};
+            if(p.hell)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:C.hellFill}};
+          });
+          fr++;
         });
+        // subtotal row
+        let tc=fs.getCell(fr,5); tc.value=(LANG==='ro'?'Total':(LANG==='hu'?'Összesen':'Total'))+' '+vs.length+' '+(LANG==='ro'?'art':(LANG==='hu'?'cikk':'art')); tc.font={name:AR,size:8,italic:true,color:{argb:C.gray}}; tc.alignment={horizontal:'right'};
+        let td=fs.getCell(fr,6); td.value=vs.reduce((a,b)=>a+(+b.f||0),0); td.font={name:AR,size:9,bold:true,color:{argb:C.ink}}; td.alignment={horizontal:'center'}; td.border=bd; tc.border=bd;
         fr++;
       }); });
     }); });
@@ -893,7 +931,7 @@ async function generatePDF(modes){
         const head=[[X(L.thProduct),X(fmtHead)].concat(STATIONS.map(s=>X(s.name)))];
         const body=items.map(p=>{
           const row=[{content:X(p.name+(p.short?' '+p.short:'')),styles:{halign:'left',fontStyle:'bold'}},{content:X(p.fmt[LANG]||''),styles:{textColor:gray,fontSize:7,halign:'left'}}];
-          STATIONS.forEach(s=>{const dd=getD(p,s.k,zone); let t='-'; if(dd&&typeof dd.p==='number'){t=(typeof dd.alt==='number')?fmtNum(dd.p)+' / '+fmtNum(dd.alt):fmtNum(dd.p); if(typeof dd.promo==='number')t+='\npromo '+fmtNum(dd.promo);} if(dd&&(typeof dd.fc==='number'||typeof dd.fa==='number'||typeof dd.la==='number')){if(t==='-')t=''; t+=(t?'\n':'')+(typeof dd.la==='number'?dd.la+'art ':'')+'['+((dd.fc||0)+(dd.fa||0))+': '+(dd.fc||0)+'+'+(dd.fa||0)+']';} row.push({content:t,styles:{halign:'right'}});});
+          STATIONS.forEach(s=>{const dd=getD(p,s.k,zone); let t='-'; if(dd&&typeof dd.p==='number'){t=(typeof dd.alt==='number')?fmtNum(dd.p)+' / '+fmtNum(dd.alt):fmtNum(dd.p); if(typeof dd.promo==='number')t+='\npromo '+fmtNum(dd.promo);} {const vs=facVars(dd); if(vs.length){if(t==='-')t=''; t+=(t?'\n':'')+vs.length+'art · '+vs.reduce((a,b)=>a+(+b.f||0),0);}} row.push({content:t,styles:{halign:'right'}});});
           if(p.hell) row.forEach(c=>{c.styles=Object.assign({fillColor:pinkFill},c.styles||{});});
           return row;});
         doc.autoTable({head,body,startY:y+5,margin:{left:M,right:M},theme:'grid',styles:{font:FONT,fontSize:(multi?7:8),cellPadding:(multi?2:3),lineColor:[220,220,220],lineWidth:0.5,valign:'middle'},headStyles:HS,columnStyles:{0:{halign:'left'},1:{halign:'left'}}});
